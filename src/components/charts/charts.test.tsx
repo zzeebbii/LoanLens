@@ -12,11 +12,13 @@ import { KpiTiles } from '@/components/charts/KpiTiles'
 import { LifetimeSplit } from '@/components/charts/LifetimeSplit'
 import { rampStep, SEQUENTIAL_RAMP, SERIES } from '@/components/charts/palette'
 import { PaymentAnatomy } from '@/components/charts/PaymentAnatomy'
+import { RateHistoryLine } from '@/components/charts/RateHistoryLine'
 import { YearlyBars } from '@/components/charts/YearlyBars'
 import { totals } from '@/domain/analytics'
+import { yearMonth } from '@/domain/dates'
 import { toCents } from '@/domain/money'
 import { replay } from '@/domain/schedule'
-import { fixedRateLoan, noRates } from '@/domain/testing/fixtures'
+import { fixedRateLoan, floatingRateLoan, noRates, rateOf } from '@/domain/testing/fixtures'
 
 /**
  * What these check, and what they cannot.
@@ -152,6 +154,66 @@ describe('KpiTiles', () => {
     for (const sparkline of sparklines) {
       expect(sparkline.getAttribute('aria-hidden')).toBe('true')
     }
+  })
+})
+
+describe('RateHistoryLine', () => {
+  // Rates climb through the cap, so the ceiling both binds and is visibly exceeded.
+  const rising = rateOf({ '2021-01': 0, '2022-01': 0.005, '2023-01': 0.032, '2024-01': 0.042 })
+  const capped = floatingRateLoan({
+    cap: { ceiling: 0.03, premiumBps: 35, from: yearMonth(2021, 3), until: yearMonth(2031, 3) },
+  })
+
+  it('does not draw a ceiling for a loan that has no cap', async () => {
+    const uncapped = floatingRateLoan()
+    await renderWithProviders(
+      <RateHistoryLine
+        loan={uncapped}
+        rows={replay({ loan: uncapped, referenceRateAt: rising })}
+      />,
+    )
+
+    expect(await screen.findByText('Reference rate')).toBeDefined()
+    expect(screen.queryByText('Cap ceiling')).toBeNull()
+  })
+
+  it('adds the ceiling to the legend when a cap is in force', async () => {
+    await renderWithProviders(
+      <RateHistoryLine loan={capped} rows={replay({ loan: capped, referenceRateAt: rising })} />,
+    )
+
+    expect(await screen.findByText('Cap ceiling')).toBeDefined()
+  })
+
+  it('carries the ceiling into the table view, where the geometry is unavailable', async () => {
+    const user = userEvent.setup()
+    await renderWithProviders(
+      <RateHistoryLine loan={capped} rows={replay({ loan: capped, referenceRateAt: rising })} />,
+    )
+
+    await user.click(screen.getByRole('button', { name: /Show as a table/ }))
+    const table = await screen.findByRole('table')
+
+    expect(within(table).getAllByRole('columnheader').at(-1)?.textContent).toBe('Cap ceiling')
+    // The ceiling as entered, not the rate it produced — the margin is not in this figure.
+    expect(within(table).getAllByText(/3\.000\s?%/).length).toBeGreaterThan(0)
+  })
+
+  it('reports the raw fixing beside the ceiling, so the gap is the protection', async () => {
+    const cappedRows = replay({ loan: capped, referenceRateAt: rising })
+    const boundRows = cappedRows.filter((row) => row.flags.includes('RATE_CAPPED'))
+
+    expect(boundRows.length).toBeGreaterThan(0)
+    // Every capped month plots a raw fixing above its ceiling. That vertical gap is the
+    // whole visual argument for the cap, so it must never be the clamped figure.
+    for (const row of boundRows) {
+      expect(row.referenceRate).not.toBeNull()
+      expect(row.referenceRate!).toBeGreaterThan(row.capCeiling!)
+      expect(row.capCeiling).toBeCloseTo(0.03, 10)
+    }
+
+    // The 2024 reset reads a 4.2% fixing: 1.2 points of visible daylight above the lid.
+    expect(cappedRows.find((row) => row.period === '2024-03')?.referenceRate).toBeCloseTo(0.042, 10)
   })
 })
 

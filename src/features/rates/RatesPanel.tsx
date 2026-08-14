@@ -1,5 +1,5 @@
 import type { Loan } from '@/domain/loan'
-import type { PaymentRow } from '@/domain/schedule'
+import type { PaymentRow, ReferenceRateAt } from '@/domain/schedule'
 import type { RateSeries } from '@/rates'
 
 import { GlobeIcon, ShieldCheckIcon } from 'lucide-react'
@@ -20,6 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { CapEffectCard } from '@/features/rates/CapEffectCard'
 import { ForecastPicker } from '@/features/rates/ForecastPicker'
 import { RateSensitivity } from '@/features/rates/RateSensitivity'
 import { translateDynamic } from '@/i18n/dynamicKey'
@@ -35,10 +36,12 @@ export function RatesPanel({
   loan,
   series,
   rows,
+  rateAt,
 }: {
   readonly loan: Loan
   readonly series: RateSeries | null
   readonly rows: readonly PaymentRow[] | null
+  readonly rateAt: ReferenceRateAt | undefined
 }) {
   const { t } = useTranslation(['rates', 'loan'] as const)
   const locale = useLocale()
@@ -97,6 +100,16 @@ export function RatesPanel({
                 )}
               </dd>
             </div>
+            <div>
+              <dt className="text-muted-foreground">{t('loan:rate.cap')}</dt>
+              <dd className="font-medium">
+                {basis.cap === null ? (
+                  t('loan:rate.noCap')
+                ) : (
+                  <Rate value={basis.cap.ceiling} decimals={2} />
+                )}
+              </dd>
+            </div>
           </dl>
 
           <div className="flex flex-wrap items-center gap-2 border-t pt-4">
@@ -132,6 +145,8 @@ export function RatesPanel({
           <ForecastPicker />
         </CardContent>
       </Card>
+
+      <CapEffectCard loan={loan} rateAt={rateAt} />
 
       {rows !== null && <RateSensitivity loan={loan} baselineRows={rows} />}
 

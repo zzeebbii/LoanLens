@@ -66,6 +66,14 @@ const EVERY_EVENT: readonly LoanEvent[] = [
     period: yearMonth(2026, 6),
     closingBalance: fromMajorUnits(198_432.17),
   },
+  {
+    kind: 'RATE_CAP',
+    ceiling: 0.03,
+    premiumBps: 35,
+    from: yearMonth(2026, 9),
+    until: yearMonth(2031, 9),
+  },
+  { kind: 'RATE_CAP', ceiling: 0.025, premiumBps: 0, from: yearMonth(2032, 1), until: null },
 ]
 
 describe('event mapping', () => {
@@ -82,6 +90,7 @@ describe('event mapping', () => {
       'BALANCE_CORRECTION',
       'EXTRA_PAYMENT',
       'PAYMENT_HOLIDAY',
+      'RATE_CAP',
       'RATE_OVERRIDE',
       'RECURRING_EXTRA',
     ])
@@ -205,6 +214,77 @@ describe('loan mapping', () => {
       ...stored,
       rateBasis: { ...stored.rateBasis, reference: { providerId: 'ecb', tenor: '9M' } },
     }
+    expect(storedLoanSchema.safeParse(damaged).success).toBe(false)
+  })
+})
+
+describe('rate caps in storage', () => {
+  it('round-trips a loan carrying a cap', () => {
+    const loan = floatingRateLoan({
+      cap: {
+        ceiling: 0.03,
+        premiumBps: 35,
+        from: yearMonth(2026, 9),
+        until: yearMonth(2031, 9),
+      },
+    })
+
+    expect(fromStoredLoan(toStoredLoan(loan))).toEqual(loan)
+  })
+
+  it('round-trips an open-ended cap', () => {
+    const loan = floatingRateLoan({
+      cap: { ceiling: 0.03, premiumBps: 35, from: yearMonth(2026, 9), until: null },
+    })
+
+    expect(fromStoredLoan(toStoredLoan(loan))).toEqual(loan)
+  })
+
+  it('loads a loan saved before caps existed as uncapped', () => {
+    // Backward compatibility that matters: a user who entered a loan last month must not
+    // find it unopenable because a field was added since.
+    const stored = toStoredLoan(floatingRateLoan())
+    const { cap: _omitted, ...basisWithoutCap } = stored.rateBasis as Record<string, unknown>
+    const legacy = { ...stored, rateBasis: basisWithoutCap }
+
+    const parsed = storedLoanSchema.safeParse(legacy)
+    expect(parsed.success).toBe(true)
+    if (parsed.success) {
+      expect(fromStoredLoan(parsed.data).rateBasis).toMatchObject({ cap: null })
+    }
+  })
+
+  it('rejects a negative premium', () => {
+    const stored = toStoredLoan(
+      floatingRateLoan({
+        cap: { ceiling: 0.03, premiumBps: 35, from: yearMonth(2026, 9), until: null },
+      }),
+    )
+    const damaged = {
+      ...stored,
+      rateBasis: {
+        ...stored.rateBasis,
+        cap: { ceiling: 0.03, premiumBps: -1, from: '2026-09', until: null },
+      },
+    }
+
+    expect(storedLoanSchema.safeParse(damaged).success).toBe(false)
+  })
+
+  it('rejects a malformed cap period', () => {
+    const stored = toStoredLoan(
+      floatingRateLoan({
+        cap: { ceiling: 0.03, premiumBps: 35, from: yearMonth(2026, 9), until: null },
+      }),
+    )
+    const damaged = {
+      ...stored,
+      rateBasis: {
+        ...stored.rateBasis,
+        cap: { ceiling: 0.03, premiumBps: 35, from: '2026-13', until: null },
+      },
+    }
+
     expect(storedLoanSchema.safeParse(damaged).success).toBe(false)
   })
 })

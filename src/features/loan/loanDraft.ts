@@ -14,7 +14,7 @@ import {
   yearMonth,
   yearMonthOf,
 } from '@/domain/dates'
-import { bpsToRate, rateToBps, TENORS } from '@/domain/loan'
+import { bpsToRate, TENORS } from '@/domain/loan'
 import { parseMoney, ZERO } from '@/domain/money'
 import { toDecimalString as moneyToDecimalString } from '@/i18n/format'
 
@@ -46,6 +46,15 @@ export interface LoanDraft {
   /** Percentage points over the reference: `0.55` for 55 basis points. */
   readonly marginPercent: string
   readonly floorReference: boolean
+  /** Whether the loan carries an agreed interest rate cap. */
+  readonly hasCap: boolean
+  /** Ceiling on the reference rate, as a percentage: `3` for 3%. */
+  readonly capCeilingPercent: string
+  /** What the bank charges for it, in percentage points: `0.35`. */
+  readonly capPremiumPercent: string
+  readonly capFrom: string
+  /** Empty means the cap runs to the end of the loan. */
+  readonly capUntil: string
   readonly resetMonths: string
   readonly firstResetPeriod: string
   readonly roundRate: boolean
@@ -108,6 +117,18 @@ export const loanDraftSchema = z
     tenor: z.enum(TENORS),
     marginPercent: percentString('loan:validation.marginRange', { min: -5, max: 25 }),
     floorReference: z.boolean(),
+    hasCap: z.boolean(),
+    capCeilingPercent: percentString('loan:validation.capCeilingRange', { min: 0, max: 25 }),
+    capPremiumPercent: percentString('loan:validation.capPremiumRange', { min: 0, max: 5 }),
+    capFrom: z
+      .string()
+      .refine((value) => parseYearMonth(value) !== null, 'loan:validation.periodInvalid'),
+    capUntil: z
+      .string()
+      .refine(
+        (value) => value === '' || parseYearMonth(value) !== null,
+        'loan:validation.periodInvalid',
+      ),
     resetMonths: z.string().refine((value) => {
       const months = Number(value)
       return Number.isInteger(months) && months >= 1 && months <= 120
@@ -122,6 +143,24 @@ export const loanDraftSchema = z
     dayCount: z.enum(DAY_COUNT_CONVENTIONS),
     rounding: z.enum(['HALF_UP', 'HALF_EVEN', 'DOWN', 'UP']),
   })
+  .refine(
+    (draft) => {
+      if (!draft.hasCap || draft.rateKind !== 'FLOATING') return true
+      // The floor is fixed at 0 when enabled, so any non-negative ceiling clears it. A
+      // negative ceiling with the floor on would be protection that can never pay out.
+      return !draft.floorReference || Number(draft.capCeilingPercent.replace(',', '.')) >= 0
+    },
+    { message: 'loan:validation.capBelowFloor', path: ['capCeilingPercent'] },
+  )
+  .refine(
+    (draft) => {
+      if (!draft.hasCap || draft.capUntil === '') return true
+      const from = parseYearMonth(draft.capFrom)
+      const until = parseYearMonth(draft.capUntil)
+      return from === null || until === null || until >= from
+    },
+    { message: 'loan:validation.capEndsBeforeStart', path: ['capUntil'] },
+  )
   .refine(
     (draft) => {
       const drawdown = parseLocalDate(draft.drawdownDate)
@@ -141,6 +180,23 @@ export type ValidatedLoanDraft = z.infer<typeof loanDraftSchema>
 
 function percentToRate(value: string): number {
   return Number(value.replace(',', '.')) / 100
+}
+
+/**
+ * A typed percentage to basis points, in one step.
+ *
+ * Going via a fraction — percent / 100, then × 10,000 — accumulates float error in both
+ * directions: `0.55 / 100 * 10000` is 55.00000000000001 and `0.35` comes back as
+ * 34.99999999999999. That noise then travels into stored data and out again, so a loan
+ * opened in the edit form and saved untouched would come back with a different margin than
+ * it went in with.
+ *
+ * Multiplying by 100 once and snapping to six decimals keeps every figure a user could
+ * plausibly type exact, while leaving genuine fractional basis points alone.
+ */
+function percentToBps(value: string): number {
+  const asPercent = Number(value.replace(',', '.'))
+  return Math.round(asPercent * 100 * 1e6) / 1e6
 }
 
 function rateToPercentString(rate: number): string {
@@ -171,6 +227,12 @@ export function emptyLoanDraft(settings: AppSettings, today = new Date()): LoanD
     // Defaulted on because most euro-area agreements floor the reference at zero, and a
     // borrower who has not checked is more likely to have a floor than not.
     floorReference: true,
+    hasCap: false,
+    capCeilingPercent: '3',
+    capPremiumPercent: '0.35',
+    capFrom: yearMonth(year, month),
+    // Empty by default so a user who does not know the end date is not forced to invent one.
+    capUntil: '',
     resetMonths: '12',
     firstResetPeriod: yearMonth(year, month),
     roundRate: false,
@@ -201,6 +263,11 @@ export function loanToDraft(loan: Loan): LoanDraft {
     tenor: floating?.reference.tenor ?? '12M',
     marginPercent: rateToPercentString(bpsToRate(floating?.marginBps ?? 55)),
     floorReference: floating?.referenceFloor !== null && floating?.referenceFloor !== undefined,
+    hasCap: floating?.cap != null,
+    capCeilingPercent: rateToPercentString(floating?.cap?.ceiling ?? 0.03),
+    capPremiumPercent: rateToPercentString(bpsToRate(floating?.cap?.premiumBps ?? 35)),
+    capFrom: floating?.cap?.from ?? loan.firstPaymentPeriod,
+    capUntil: floating?.cap?.until ?? '',
     resetMonths: String(floating?.resetMonths ?? 12),
     firstResetPeriod: floating?.firstResetPeriod ?? loan.firstPaymentPeriod,
     roundRate: floating?.rateRounding != null,
@@ -242,8 +309,23 @@ export function draftToLoan(draft: ValidatedLoanDraft): Loan {
         : {
             kind: 'FLOATING',
             reference: { providerId: draft.providerId, tenor: draft.tenor },
-            marginBps: rateToBps(percentToRate(draft.marginPercent)),
+            marginBps: percentToBps(draft.marginPercent),
             referenceFloor: draft.floorReference ? 0 : null,
+            cap: draft.hasCap
+              ? {
+                  ceiling: percentToRate(draft.capCeilingPercent),
+                  premiumBps: percentToBps(draft.capPremiumPercent),
+                  from: parseYearMonth(draft.capFrom) as NonNullable<
+                    ReturnType<typeof parseYearMonth>
+                  >,
+                  until:
+                    draft.capUntil === ''
+                      ? null
+                      : (parseYearMonth(draft.capUntil) as NonNullable<
+                          ReturnType<typeof parseYearMonth>
+                        >),
+                }
+              : null,
             resetMonths: Number(draft.resetMonths),
             firstResetPeriod: parseYearMonth(draft.firstResetPeriod) as NonNullable<
               ReturnType<typeof parseYearMonth>

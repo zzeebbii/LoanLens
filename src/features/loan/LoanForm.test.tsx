@@ -7,8 +7,9 @@ import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
 import { renderWithProviders } from '@/app/testing/renderApp'
+import { yearMonth } from '@/domain/dates'
 import { toCents } from '@/domain/money'
-import { fixedRateLoan } from '@/domain/testing/fixtures'
+import { fixedRateLoan, floatingRateLoan } from '@/domain/testing/fixtures'
 import { emptyLoanDraft, loanToDraft } from '@/features/loan/loanDraft'
 import { LoanForm } from '@/features/loan/LoanForm'
 import { DEFAULT_SETTINGS } from '@/persistence'
@@ -179,5 +180,87 @@ describe('LoanForm', () => {
 
     expect(onCancel).toHaveBeenCalledOnce()
     expect(onSubmit).not.toHaveBeenCalled()
+  })
+
+  it('stores a cap the way a bank quotes it: percentages in, fractions and bps out', async () => {
+    const user = userEvent.setup()
+    const onSubmit = vi.fn<(loan: Loan) => void>()
+
+    await renderForm({ onSubmit })
+    await fillMinimum(user, 'Capped loan')
+
+    await user.click(screen.getByLabelText('This loan has a rate cap'))
+    await user.clear(screen.getByLabelText('Reference rate capped at'))
+    await user.type(screen.getByLabelText('Reference rate capped at'), '3')
+    await user.clear(screen.getByLabelText('Fee for the cap'))
+    await user.type(screen.getByLabelText('Fee for the cap'), '0.35')
+
+    await user.click(screen.getByRole('button', { name: 'Add loan' }))
+
+    const loan = onSubmit.mock.calls[0]![0]
+    expect(loan.rateBasis.kind).toBe('FLOATING')
+    if (loan.rateBasis.kind === 'FLOATING') {
+      // 3% typed becomes the fraction 0.03; 0.35% becomes 35 basis points.
+      expect(loan.rateBasis.cap?.ceiling).toBeCloseTo(0.03, 10)
+      expect(loan.rateBasis.cap?.premiumBps).toBeCloseTo(35, 6)
+    }
+  })
+
+  it('leaves the loan uncapped when the toggle is off', async () => {
+    const user = userEvent.setup()
+    const onSubmit = vi.fn<(loan: Loan) => void>()
+
+    await renderForm({ onSubmit })
+    await fillMinimum(user)
+    await user.click(screen.getByRole('button', { name: 'Add loan' }))
+
+    const loan = onSubmit.mock.calls[0]![0]
+    if (loan.rateBasis.kind === 'FLOATING') expect(loan.rateBasis.cap).toBeNull()
+  })
+
+  it('hides the cap fields until a cap is actually wanted', async () => {
+    await renderForm({})
+
+    expect(screen.queryByLabelText('Reference rate capped at')).toBeNull()
+    expect(screen.getByLabelText('This loan has a rate cap')).toBeDefined()
+  })
+
+  it('says the ceiling applies before the margin, so a total-rate cap is not mis-entered', async () => {
+    const user = userEvent.setup()
+    await renderForm({})
+    await user.click(screen.getByLabelText('This loan has a rate cap'))
+
+    // The single most likely way to enter this wrong, given banks quote it both ways.
+    expect(
+      await screen.findByText(/caps the reference rate before your margin is added/),
+    ).toBeDefined()
+  })
+
+  it('warns that the fee is charged whether or not the cap ever bites', async () => {
+    const user = userEvent.setup()
+    await renderForm({})
+    await user.click(screen.getByLabelText('This loan has a rate cap'))
+
+    expect(
+      await screen.findByText(/charged for the whole capped period whether or not/),
+    ).toBeDefined()
+  })
+
+  it('round-trips a capped loan through the edit form unchanged', async () => {
+    const user = userEvent.setup()
+    const original = floatingRateLoan({
+      name: 'Capped',
+      cap: { ceiling: 0.03, premiumBps: 35, from: yearMonth(2026, 9), until: yearMonth(2031, 9) },
+    })
+    const onSubmit = vi.fn<(loan: Loan) => void>()
+
+    await renderForm({
+      onSubmit,
+      defaultValues: loanToDraft(original),
+      submitLabel: 'Save changes',
+    })
+    await user.click(screen.getByRole('button', { name: 'Save changes' }))
+
+    expect(onSubmit.mock.calls[0]![0]).toEqual(original)
   })
 })

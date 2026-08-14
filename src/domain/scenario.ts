@@ -1,4 +1,5 @@
 import type { YearMonth } from '@/domain/dates'
+import type { RateCap } from '@/domain/loan'
 import type { Money } from '@/domain/money'
 
 import { compareYearMonth } from '@/domain/dates'
@@ -68,6 +69,24 @@ export type LoanEvent =
       readonly from: YearMonth
       readonly until: YearMonth | null
       readonly annualRate: number
+    }
+  /**
+   * A cap on the reference rate, bought for a premium.
+   *
+   * The event form of `RateBasis.cap`, for the question a borrower actually faces: the bank
+   * is offering a ceiling for a price — is it worth taking? Modelled as an event so the
+   * answer comes from the same comparison machinery as any other what-if, with the capped
+   * and uncapped schedules replayed through identical code.
+   */
+  | {
+      readonly kind: 'RATE_CAP'
+      /** Ceiling on the reference rate, as a fraction. */
+      readonly ceiling: number
+      /** Premium in basis points, added to the rate while the cap is in force. */
+      readonly premiumBps: number
+      readonly from: YearMonth
+      /** `null` runs the cap to the end of the loan. */
+      readonly until: YearMonth | null
     }
   /**
    * Pins the balance to a figure taken from a real statement.
@@ -183,6 +202,30 @@ export function rateOverrideFor(period: YearMonth, events: readonly LoanEvent[])
     }
   }
   return override
+}
+
+/**
+ * Every rate cap an event puts in force for `period`.
+ *
+ * Returns all of them rather than one, because the caller combines them with any cap the
+ * loan itself carries — and combining is not "pick one": the tightest ceiling binds and the
+ * premiums add. See `combineCaps`.
+ */
+export function rateCapsFor(period: YearMonth, events: readonly LoanEvent[]): RateCap[] {
+  const caps: RateCap[] = []
+
+  for (const event of events) {
+    if (event.kind === 'RATE_CAP' && periodInRange(period, event.from, event.until)) {
+      caps.push({
+        ceiling: event.ceiling,
+        premiumBps: event.premiumBps,
+        from: event.from,
+        until: event.until,
+      })
+    }
+  }
+
+  return caps
 }
 
 /** The balance correction anchored to `period`, if any. Later events win. */

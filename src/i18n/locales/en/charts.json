@@ -31,7 +31,9 @@
     "applied": "Your rate",
     "reference": "Reference rate",
     "resetHere": "Rate reset this month",
-    "marginNote": "The gap between the two lines is your margin. It does not change when the reference rate does."
+    "marginNote": "The gap between the two lines is your margin. It does not change when the reference rate does.",
+    "ceiling": "Cap ceiling",
+    "cappedHere": "The cap held the reference down this month"
   },
   "paymentAnatomy": {
     "title": "This instalment in detail",

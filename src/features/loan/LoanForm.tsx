@@ -331,6 +331,132 @@ export function LoanForm({ defaultValues, submitLabel, onSubmit, onCancel }: Loa
                 )}
               />
 
+              {/*
+               * The cap sits at the end of the rate section because it is a decision layered
+               * on top of the basis above it, not part of defining that basis.
+               */}
+              <Controller
+                control={form.control}
+                name="hasCap"
+                render={({ field }) => (
+                  <div className="space-y-3 rounded-lg border p-4 sm:col-span-2">
+                    <div className="flex items-start gap-3">
+                      <Switch id="hasCap" checked={field.value} onCheckedChange={field.onChange} />
+                      <div className="space-y-1">
+                        <label htmlFor="hasCap" className="text-sm font-medium">
+                          {t('loan:rate.hasCap')}
+                        </label>
+                        <p className="text-xs text-muted-foreground">{t('loan:rate.capHelp')}</p>
+                      </div>
+                    </div>
+
+                    {field.value && (
+                      <div className="grid gap-5 sm:grid-cols-2">
+                        <FormField
+                          label={t('loan:rate.capCeiling')}
+                          help={t('loan:rate.capCeilingHelp')}
+                          error={errorFor('capCeilingPercent')}
+                        >
+                          {(props) => (
+                            <div className="flex items-center gap-2">
+                              <Input
+                                {...props}
+                                {...form.register('capCeilingPercent')}
+                                inputMode="decimal"
+                                className="max-w-32"
+                              />
+                              <span aria-hidden className="text-sm text-muted-foreground">
+                                %
+                              </span>
+                            </div>
+                          )}
+                        </FormField>
+
+                        <FormField
+                          label={t('loan:rate.capPremium')}
+                          help={t('loan:rate.capPremiumHelp')}
+                          error={errorFor('capPremiumPercent')}
+                        >
+                          {(props) => (
+                            <div className="flex items-center gap-2">
+                              <Input
+                                {...props}
+                                {...form.register('capPremiumPercent')}
+                                inputMode="decimal"
+                                className="max-w-32"
+                              />
+                              <span aria-hidden className="text-sm text-muted-foreground">
+                                %
+                              </span>
+                            </div>
+                          )}
+                        </FormField>
+
+                        <Controller
+                          control={form.control}
+                          name="capFrom"
+                          render={({ field: capFrom }) => (
+                            <FormField label={t('loan:rate.capFrom')} error={errorFor('capFrom')}>
+                              {(props) => (
+                                <MonthField
+                                  {...props}
+                                  value={capFrom.value}
+                                  onChange={capFrom.onChange}
+                                  monthLabel={t('common:date.month')}
+                                  yearLabel={t('common:date.year')}
+                                />
+                              )}
+                            </FormField>
+                          )}
+                        />
+
+                        <Controller
+                          control={form.control}
+                          name="capUntil"
+                          render={({ field: capUntil }) => (
+                            <FormField label={t('loan:rate.capUntil')} error={errorFor('capUntil')}>
+                              {(props) => (
+                                <div className="space-y-2">
+                                  {/*
+                                   * Caps are sold for a fixed term, so an end date is the
+                                   * norm — but "to the end of the loan" exists and has no
+                                   * month to pick, so it is an explicit choice.
+                                   */}
+                                  <div className="flex items-center gap-2">
+                                    <Switch
+                                      id="capOpenEnded"
+                                      checked={capUntil.value === ''}
+                                      onCheckedChange={(open: boolean) =>
+                                        capUntil.onChange(open ? '' : form.getValues('capFrom'))
+                                      }
+                                    />
+                                    <label
+                                      htmlFor="capOpenEnded"
+                                      className="text-sm text-muted-foreground"
+                                    >
+                                      {t('loan:rate.capOpenEnded')}
+                                    </label>
+                                  </div>
+                                  {capUntil.value !== '' && (
+                                    <MonthField
+                                      {...props}
+                                      value={capUntil.value}
+                                      onChange={capUntil.onChange}
+                                      monthLabel={t('common:date.month')}
+                                      yearLabel={t('common:date.year')}
+                                    />
+                                  )}
+                                </div>
+                              )}
+                            </FormField>
+                          )}
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
+              />
+
               <Controller
                 control={form.control}
                 name="roundRate"

@@ -149,6 +149,7 @@ export function LoanDetailPage() {
               loan={loan}
               series={rates.data?.series ?? null}
               rows={schedule?.rows ?? null}
+              rateAt={rates.data?.rateAt}
             />
           </TabsContent>
         </Tabs>

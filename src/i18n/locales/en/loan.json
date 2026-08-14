@@ -52,7 +52,18 @@
     "resetMonths": "Rate reset interval",
     "firstResetPeriod": "First rate reset",
     "rateRounding": "Round the applied rate",
-    "noFloor": "No floor"
+    "noFloor": "No floor",
+    "cap": "Interest rate cap",
+    "capHelp": "The bank caps the reference rate for a fixed period, for a fee. Worth taking only if rates rise far enough, for long enough, to save more than the fee costs.",
+    "hasCap": "This loan has a rate cap",
+    "capCeiling": "Reference rate capped at",
+    "capCeilingHelp": "This caps the reference rate before your margin is added. If your agreement caps the total rate instead, subtract your margin from the figure it states.",
+    "capPremium": "Fee for the cap",
+    "capPremiumHelp": "Usually quoted as an addition to your margin, and charged for the whole capped period whether or not the cap ever takes effect.",
+    "capFrom": "Cap starts",
+    "capUntil": "Cap ends",
+    "capOpenEnded": "Runs to the end of the loan",
+    "noCap": "No cap"
   },
   "fees": {
     "title": "Fees",
@@ -89,6 +100,10 @@
     "paymentDayRange": "Enter a day between 1 and 31",
     "dateInvalid": "Enter a real date",
     "periodInvalid": "Enter a month, for example 2021-03",
-    "firstPaymentBeforeDrawdown": "The first instalment cannot come before the drawdown date"
+    "firstPaymentBeforeDrawdown": "The first instalment cannot come before the drawdown date",
+    "capCeilingRange": "Enter a cap between 0 and 25%",
+    "capPremiumRange": "Enter a fee between 0 and 5%",
+    "capBelowFloor": "A cap below the floor could never take effect",
+    "capEndsBeforeStart": "The cap cannot end before it starts"
   }
 }

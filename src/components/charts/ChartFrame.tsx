@@ -26,7 +26,7 @@ export interface ChartLegendItem {
   readonly label: string
   readonly colour: string
   /** Lines key with a stroke, fills with a rectangle — mirroring the mark. */
-  readonly shape?: 'line' | 'rect'
+  readonly shape?: 'line' | 'rect' | 'dashed'
 }
 
 export interface ChartFrameProps {
@@ -111,16 +111,35 @@ export function ChartFrame({
   )
 }
 
-/** The legend key: a rectangle for fills, a short stroke for lines. */
-function ChartKey({ colour, shape }: { readonly colour: string; readonly shape: 'line' | 'rect' }) {
+/**
+ * The legend key: a rectangle for fills, a short stroke for lines, a broken stroke for
+ * dashed ones.
+ *
+ * The key mirrors how the mark is actually drawn, dash included. A solid key beside a dashed
+ * line would be a small lie in exactly the place a reader goes to resolve which line is
+ * which — and the dash is doing real work here as the non-colour half of the encoding.
+ */
+function ChartKey({
+  colour,
+  shape,
+}: {
+  readonly colour: string
+  readonly shape: 'line' | 'rect' | 'dashed'
+}) {
   return (
     <span
       aria-hidden
       className={cn(
         'inline-block shrink-0',
-        shape === 'line' ? 'h-0.5 w-3.5' : 'size-2.5 rounded-sm',
+        shape === 'rect' ? 'size-2.5 rounded-sm' : 'h-0.5 w-3.5',
       )}
-      style={{ backgroundColor: colour }}
+      style={
+        shape === 'dashed'
+          ? {
+              backgroundImage: `repeating-linear-gradient(to right, ${colour} 0 4px, transparent 4px 7px)`,
+            }
+          : { backgroundColor: colour }
+      }
     />
   )
 }

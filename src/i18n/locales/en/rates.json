@@ -55,5 +55,21 @@
   "status": {
     "usingSnapshotBecause": "Could not reach the ECB, so the built-in data is being used instead.",
     "missingRate": "No published rate for {{period}}. Choose what to assume for months beyond the published data."
+  },
+  "cap": {
+    "title": "Was the rate cap worth it?",
+    "description": "What the ceiling saved against what the fee cost, over the whole loan.",
+    "interestAvoided": "Interest the cap prevented",
+    "premiumCost": "What the cap cost",
+    "net": "Net",
+    "worthwhile": "The cap paid for itself",
+    "worthwhileBody": "Rates rose far enough, for long enough, that the ceiling saved more than the fee.",
+    "notWorthwhile": "The cap has not paid for itself",
+    "notWorthwhileBody": "The fee is charged for the whole capped period whether or not the ceiling is ever reached. On this rate path it was not.",
+    "forecastCaveat": "Months beyond the published rate data use your forecast assumption, so this is a projection rather than a settled figure.",
+    "offerTitle": "Model a cap you have been offered",
+    "offerDescription": "Enter the ceiling and fee your bank quoted to see what it would have been worth on this rate path.",
+    "ceiling": "Ceiling",
+    "premium": "Fee"
   }
 }

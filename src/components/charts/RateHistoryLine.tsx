@@ -34,8 +34,28 @@ import { formatPeriod, formatRate } from '@/i18n/format'
  *
  * Reset months are marked with hairlines rather than a third series. They are annotations
  * on the x-axis, not a quantity, and drawing them as a series would imply they had values.
+ *
+ * A cap ceiling, when there is one, is a third line — but only across the months it covers,
+ * and dashed. Both of those are deliberate. Drawn across the full width it would claim
+ * protection in years the loan does not have any; drawn solid it would read as a third
+ * measurement rather than as the lid the reference line is pressed against. The reference
+ * series plots the *raw* fixing, so where it rises above this line is precisely what the cap
+ * is buying.
  */
 const MAX_PLOTTED_POINTS = 200
+
+/**
+ * Which note belongs under the tooltip.
+ *
+ * A month where the ceiling actually bit is the more interesting of the two facts, so it
+ * wins when both are true — a reset that was immediately capped is, from the borrower's side,
+ * a month where the cap earned its fee.
+ */
+function footerKeyFor(row: PaymentRow): 'rateHistory.cappedHere' | 'rateHistory.resetHere' | null {
+  if (row.flags.includes('RATE_CAPPED')) return 'rateHistory.cappedHere'
+  if (row.flags.includes('RATE_RESET')) return 'rateHistory.resetHere'
+  return null
+}
 
 export function RateHistoryLine({
   loan,
@@ -53,6 +73,8 @@ export function RateHistoryLine({
         period: row.period,
         applied: row.annualRate * 100,
         reference: row.referenceRate === null ? undefined : row.referenceRate * 100,
+        // `undefined` outside the capped months, so the line simply stops there.
+        ceiling: row.capCeiling === null ? undefined : row.capCeiling * 100,
         row,
       })),
     [rows],
@@ -60,6 +82,7 @@ export function RateHistoryLine({
 
   const plotted = useMemo(() => thin(data, MAX_PLOTTED_POINTS), [data])
   const hasReference = data.some((datum) => datum.reference !== undefined)
+  const hasCeiling = data.some((datum) => datum.ceiling !== undefined)
 
   const resets = useMemo(
     () => rows.filter((row) => row.flags.includes('RATE_RESET')).map((row) => row.period),
@@ -88,6 +111,15 @@ export function RateHistoryLine({
         ...(hasReference
           ? [{ label: t('rateHistory.reference'), colour: SERIES.baseline, shape: 'line' as const }]
           : []),
+        ...(hasCeiling
+          ? [
+              {
+                label: t('rateHistory.ceiling'),
+                colour: SERIES.alternative,
+                shape: 'dashed' as const,
+              },
+            ]
+          : []),
       ]}
       table={() => (
         <ChartDataTable
@@ -111,6 +143,16 @@ export function RateHistoryLine({
               align: 'right',
               cell: (row) => <Rate value={row.annualRate} />,
             },
+            ...(hasCeiling
+              ? [
+                  {
+                    header: t('rateHistory.ceiling'),
+                    align: 'right' as const,
+                    cell: (row: PaymentRow) =>
+                      row.capCeiling === null ? '—' : <Rate value={row.capCeiling} />,
+                  },
+                ]
+              : []),
           ]}
         />
       )}
@@ -167,15 +209,37 @@ export function RateHistoryLine({
                             value: <Rate value={datum.row.referenceRate} />,
                           },
                         ]),
+                    ...(datum.row.capCeiling === null
+                      ? []
+                      : [
+                          {
+                            label: t('rateHistory.ceiling'),
+                            colour: SERIES.alternative,
+                            value: <Rate value={datum.row.capCeiling} />,
+                          },
+                        ]),
                   ]}
-                  footer={
-                    datum.row.flags.includes('RATE_RESET') ? t('rateHistory.resetHere') : undefined
-                  }
+                  footer={(() => {
+                    const key = footerKeyFor(datum.row)
+                    return key === null ? undefined : t(key)
+                  })()}
                 />
               ) : null
             }}
           />
 
+          {hasCeiling && (
+            <Line
+              type="stepAfter"
+              dataKey="ceiling"
+              stroke={SERIES.alternative}
+              strokeWidth={1.5}
+              strokeDasharray="5 3"
+              dot={false}
+              connectNulls={false}
+              isAnimationActive={false}
+            />
+          )}
           {hasReference && (
             <Line
               type="stepAfter"

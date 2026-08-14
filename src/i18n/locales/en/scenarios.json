@@ -11,7 +11,9 @@
     "until": "Until",
     "untilOpen": "the end of the loan",
     "effect": "What it changes",
-    "untilOpenOption": "The rest of the loan"
+    "untilOpenOption": "The rest of the loan",
+    "capCeiling": "Cap the reference rate at",
+    "capPremium": "Fee for the cap"
   },
   "effect": {
     "SHORTEN_TERM": "Finish sooner",
@@ -26,7 +28,8 @@
     "RATE_OVERRIDE": "Set the rate",
     "BALANCE_CORRECTION": "Correct the balance",
     "addEvent": "Add a change",
-    "empty": "No changes yet. Add one to see the effect."
+    "empty": "No changes yet. Add one to see the effect.",
+    "RATE_CAP": "Interest rate cap"
   },
   "holiday": {
     "interest": "During the holiday",

@@ -1,5 +1,5 @@
 import type { DayCountConvention, YearMonth } from '@/domain/dates'
-import type { Loan, RateRounding } from '@/domain/loan'
+import type { Loan, RateCap, RateRounding } from '@/domain/loan'
 import type { Money, RoundingMode } from '@/domain/money'
 import type { ReferenceRateAt } from '@/domain/schedule'
 
@@ -57,6 +57,7 @@ export function fixedRateLoan(overrides: FixedRateLoanOverrides = {}): Loan {
 export interface FloatingRateLoanOverrides extends FixedRateLoanOverrides {
   readonly marginBps?: number
   readonly referenceFloor?: number | null
+  readonly cap?: RateCap | null
   readonly resetMonths?: number
   readonly firstResetPeriod?: YearMonth
   readonly rateRounding?: RateRounding | null
@@ -72,6 +73,7 @@ export function floatingRateLoan(overrides: FloatingRateLoanOverrides = {}): Loa
       reference: { providerId: 'test', tenor: '12M' },
       marginBps: overrides.marginBps ?? 55,
       referenceFloor: overrides.referenceFloor === undefined ? 0 : overrides.referenceFloor,
+      cap: overrides.cap ?? null,
       resetMonths: overrides.resetMonths ?? 12,
       firstResetPeriod: overrides.firstResetPeriod ?? yearMonth(2021, 3),
       rateRounding: overrides.rateRounding ?? null,

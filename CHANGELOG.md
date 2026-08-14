@@ -28,6 +28,18 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   instalment on rate resets and holding the payoff date.
 - Floating-rate support for EURIBOR 1M/3M/6M/12M with margin, reference floor applied
   before the margin, configurable reset cadence and rate rounding.
+- Interest rate caps: a ceiling on the reference rate for a fixed term, priced as a premium
+  in basis points, as banks sell them. The ceiling applies to the reference before the margin
+  is added, and the floor wins if the two ever contradict each other. Available both as a term
+  of an existing loan and as a `RATE_CAP` scenario event, so an offer can be evaluated before
+  it is accepted.
+- Cap verdict card: interest avoided and premium paid shown side by side rather than netted,
+  because a cap that saved 9,000 and cost 7,000 is a different bargain from one that saved
+  2,000 for nothing. The comparison replays the loan three times to separate the ceiling's
+  effect from the premium's, so a cap that never binds reports exactly zero interest avoided.
+- Cap ceiling drawn on the rate history chart, dashed and spanning only the months it covers.
+  The reference series plots the raw published fixing, so the gap above the ceiling is what
+  the cap bought.
 - Scenario events: one-off and recurring overpayments (shortening the term or lowering the
   payment), payment holidays with paid or capitalised interest, rate overrides, and balance
   corrections that re-anchor the schedule to a real statement.

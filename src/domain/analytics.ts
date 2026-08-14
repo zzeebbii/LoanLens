@@ -1,9 +1,12 @@
 import type { YearMonth } from '@/domain/dates'
+import type { Loan } from '@/domain/loan'
 import type { Money } from '@/domain/money'
-import type { PaymentRow } from '@/domain/schedule'
+import type { LoanEvent } from '@/domain/scenario'
+import type { PaymentRow, ReferenceRateAt } from '@/domain/schedule'
 
 import { compareYearMonth, monthsBetween, yearOf } from '@/domain/dates'
 import { add, isPositive, subtract, sum, ZERO } from '@/domain/money'
+import { replay } from '@/domain/schedule'
 
 /**
  * Derived figures. Everything here is a fold over `PaymentRow[]`, so the tables and all
@@ -242,6 +245,107 @@ export function breakEven(
   }
 
   return null
+}
+
+export interface CapEffect {
+  /** False when neither the loan nor the scenario puts a cap in force. */
+  readonly hasCap: boolean
+  /** Interest the ceiling prevented. Exactly zero for a cap that never binds. */
+  readonly interestAvoided: Money
+  /**
+   * What the cap cost, all in: the premium charged, plus the knock-on of having paid it.
+   *
+   * A premium raises the rate, which changes the whole amortization path, so the cost is
+   * slightly more than the sum of the premium charges themselves. The raw charge is on each
+   * row as `capPremium` if you want it; this is the figure that belongs in a decision.
+   */
+  readonly premiumCost: Money
+  /** `interestAvoided - premiumCost`. Negative means the cap cost more than it saved. */
+  readonly net: Money
+  readonly worthwhile: boolean
+}
+
+export interface CapEffectInput {
+  readonly loan: Loan
+  readonly rateAt: ReferenceRateAt
+  readonly events?: readonly LoanEvent[]
+}
+
+/** The same loan with every cap removed, from both the loan terms and the events. */
+function withoutCaps(loan: Loan, events: readonly LoanEvent[]) {
+  return {
+    loan:
+      loan.rateBasis.kind === 'FLOATING'
+        ? { ...loan, rateBasis: { ...loan.rateBasis, cap: null } }
+        : loan,
+    events: events.filter((event) => event.kind !== 'RATE_CAP'),
+  }
+}
+
+/** The same loan with every cap kept but free of charge. */
+function withoutPremiums(loan: Loan, events: readonly LoanEvent[]) {
+  return {
+    loan:
+      loan.rateBasis.kind === 'FLOATING' && loan.rateBasis.cap !== null
+        ? {
+            ...loan,
+            rateBasis: { ...loan.rateBasis, cap: { ...loan.rateBasis.cap, premiumBps: 0 } },
+          }
+        : loan,
+    events: events.map((event) =>
+      event.kind === 'RATE_CAP' ? { ...event, premiumBps: 0 } : event,
+    ),
+  }
+}
+
+/**
+ * What a rate cap cost and what it saved — the answer to "was it worth buying?".
+ *
+ * Takes the loan rather than pre-built schedules because it needs *three* replays, and
+ * getting them consistent is exactly the thing a caller would get wrong: the same loan with
+ * no cap, with the ceiling but no premium, and with both.
+ *
+ * The middle one is what makes the split exact. Measuring the ceiling's benefit by comparing
+ * the uncapped schedule against the fully-capped one conflates two effects, because the
+ * premium raises the rate and so changes the amortization path as well. On a cap that never
+ * binds that artefact showed up as several hundred euros of "avoided" interest on protection
+ * that had done nothing at all. Splitting at the no-premium schedule attributes each half to
+ * its own cause, and the two still reconcile: `interestAvoided - premiumCost` equals the
+ * observable difference in total interest.
+ *
+ * Netting alone would not be enough to decide with either. A cap that saved €9,000 and cost
+ * €7,000 nets to the same €2,000 as one that saved €2,000 and cost nothing, and they are
+ * entirely different products at entirely different prices.
+ */
+export function capEffect({ loan, rateAt, events = [] }: CapEffectInput): CapEffect {
+  const uncapped = withoutCaps(loan, events)
+  const free = withoutPremiums(loan, events)
+
+  const interestOf = (input: { loan: Loan; events: readonly LoanEvent[] }) =>
+    sum(
+      replay({ loan: input.loan, referenceRateAt: rateAt, events: input.events }).map(
+        (row) => row.interest,
+      ),
+    )
+
+  const withoutCapInterest = interestOf(uncapped)
+  const ceilingOnlyInterest = interestOf(free)
+  const withCapInterest = interestOf({ loan, events })
+
+  const interestAvoided = subtract(withoutCapInterest, ceilingOnlyInterest)
+  const premiumCost = subtract(withCapInterest, ceilingOnlyInterest)
+
+  return {
+    hasCap:
+      (loan.rateBasis.kind === 'FLOATING' && loan.rateBasis.cap !== null) ||
+      events.some((event) => event.kind === 'RATE_CAP'),
+    interestAvoided,
+    premiumCost,
+    // Equal to `withoutCapInterest - withCapInterest` by construction, which is what makes
+    // the two halves trustworthy: they add back up to something directly observable.
+    net: subtract(interestAvoided, premiumCost),
+    worthwhile: isPositive(subtract(interestAvoided, premiumCost)),
+  }
 }
 
 export interface RunningTotalsRow {

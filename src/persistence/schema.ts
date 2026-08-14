@@ -48,6 +48,13 @@ const roundingModeSchema = z.enum(['HALF_UP', 'HALF_EVEN', 'DOWN', 'UP'])
 
 const rateSchema = z.number().finite()
 
+const rateCapSchema = z.object({
+  ceiling: rateSchema,
+  premiumBps: z.number().finite().min(0),
+  from: yearMonthSchema,
+  until: yearMonthSchema.nullable(),
+})
+
 const rateBasisSchema = z.discriminatedUnion('kind', [
   z.object({ kind: z.literal('FIXED'), annualRate: rateSchema }),
   z.object({
@@ -55,6 +62,9 @@ const rateBasisSchema = z.discriminatedUnion('kind', [
     reference: z.object({ providerId: z.string().min(1), tenor: z.enum(TENORS) }),
     marginBps: z.number().finite(),
     referenceFloor: rateSchema.nullable(),
+    // Optional so a loan stored before caps existed still loads. Absent means uncapped,
+    // which is what those loans were.
+    cap: rateCapSchema.nullish().transform((value) => value ?? null),
     resetMonths: z.number().int().positive(),
     firstResetPeriod: yearMonthSchema,
     rateRounding: z
@@ -108,6 +118,13 @@ const loanEventSchema = z.discriminatedUnion('kind', [
     from: yearMonthSchema,
     until: yearMonthSchema.nullable(),
     annualRate: rateSchema,
+  }),
+  z.object({
+    kind: z.literal('RATE_CAP'),
+    ceiling: rateSchema,
+    premiumBps: z.number().finite().min(0),
+    from: yearMonthSchema,
+    until: yearMonthSchema.nullable(),
   }),
   z.object({
     kind: z.literal('BALANCE_CORRECTION'),
@@ -191,6 +208,17 @@ export function fromStoredLoan(stored: StoredLoan): Loan {
         : {
             ...stored.rateBasis,
             firstResetPeriod: asYearMonth(stored.rateBasis.firstResetPeriod),
+            cap:
+              stored.rateBasis.cap === null
+                ? null
+                : {
+                    ...stored.rateBasis.cap,
+                    from: asYearMonth(stored.rateBasis.cap.from),
+                    until:
+                      stored.rateBasis.cap.until === null
+                        ? null
+                        : asYearMonth(stored.rateBasis.cap.until),
+                  },
           },
     fees: {
       monthlyServicing: fromStoredMoney(stored.fees.monthlyServicing),
@@ -213,7 +241,9 @@ export function toStoredEvent(event: LoanEvent): StoredLoanEvent {
       return { ...event, closingBalance: toStoredMoney(event.closingBalance) }
     }
     case 'PAYMENT_HOLIDAY':
-    case 'RATE_OVERRIDE': {
+    case 'RATE_OVERRIDE':
+    case 'RATE_CAP': {
+      // No monetary fields; the stored and domain shapes are identical.
       return event
     }
   }
@@ -239,7 +269,8 @@ export function fromStoredEvent(stored: StoredLoanEvent): LoanEvent {
     case 'PAYMENT_HOLIDAY': {
       return { ...stored, from: asYearMonth(stored.from), until: asYearMonth(stored.until) }
     }
-    case 'RATE_OVERRIDE': {
+    case 'RATE_OVERRIDE':
+    case 'RATE_CAP': {
       return {
         ...stored,
         from: asYearMonth(stored.from),

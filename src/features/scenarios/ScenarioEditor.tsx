@@ -10,6 +10,7 @@ import { useCurrentPeriod } from '@/app/hooks/useCurrentPeriod'
 import { MonthField } from '@/components/fields/MonthField'
 import { Money } from '@/components/Money'
 import { Period } from '@/components/Period'
+import { Rate } from '@/components/Rate'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -34,7 +35,7 @@ import { EXTRA_PAYMENT_EFFECTS } from '@/domain/scenario'
  * than what-ifs about the future, and mixing the two in one editor would muddle both. They
  * are better placed on the schedule rows they correct.
  */
-type DraftKind = 'RECURRING_EXTRA' | 'EXTRA_PAYMENT' | 'PAYMENT_HOLIDAY'
+type DraftKind = 'RECURRING_EXTRA' | 'EXTRA_PAYMENT' | 'PAYMENT_HOLIDAY' | 'RATE_CAP'
 
 /**
  * An event plus a client-side id.
@@ -70,6 +71,9 @@ export function ScenarioEditor({
 
   const [kind, setKind] = useState<DraftKind>('RECURRING_EXTRA')
   const [amount, setAmount] = useState('200')
+  // Percentages, as a bank quotes them.
+  const [capCeiling, setCapCeiling] = useState('3')
+  const [capPremium, setCapPremium] = useState('0.35')
   const [effect, setEffect] = useState<ExtraPaymentEffect>('SHORTEN_TERM')
   const [from, setFrom] = useState<string>(currentPeriod)
   const [until, setUntil] = useState<string>('')
@@ -82,6 +86,21 @@ export function ScenarioEditor({
     const untilPeriod: YearMonth | null = until === '' ? null : parseYearMonth(until)
 
     const add = (event: LoanEvent) => setDrafts([...drafts, { id: crypto.randomUUID(), event }])
+
+    if (kind === 'RATE_CAP') {
+      const ceiling = Number(capCeiling.replace(',', '.'))
+      const premium = Number(capPremium.replace(',', '.'))
+      if (!Number.isFinite(ceiling) || !Number.isFinite(premium) || premium < 0) return
+
+      add({
+        kind: 'RATE_CAP',
+        ceiling: ceiling / 100,
+        premiumBps: premium * 100,
+        from: fromPeriod,
+        until: untilPeriod,
+      })
+      return
+    }
 
     if (kind === 'PAYMENT_HOLIDAY') {
       // A holiday needs a bounded range: an open-ended one is a loan that never amortises.
@@ -147,11 +166,12 @@ export function ScenarioEditor({
                   <SelectItem value="PAYMENT_HOLIDAY">
                     {t('scenarios:event.PAYMENT_HOLIDAY')}
                   </SelectItem>
+                  <SelectItem value="RATE_CAP">{t('scenarios:event.RATE_CAP')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
-            {kind !== 'PAYMENT_HOLIDAY' && (
+            {kind !== 'PAYMENT_HOLIDAY' && kind !== 'RATE_CAP' && (
               <div className="space-y-1">
                 <Label htmlFor="event-amount">{t('scenarios:field.amount')}</Label>
                 <Input
@@ -161,6 +181,39 @@ export function ScenarioEditor({
                   onChange={(event) => setAmount(event.target.value)}
                 />
               </div>
+            )}
+
+            {kind === 'RATE_CAP' && (
+              <>
+                <div className="space-y-1">
+                  <Label htmlFor="event-cap-ceiling">{t('scenarios:field.capCeiling')}</Label>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      id="event-cap-ceiling"
+                      inputMode="decimal"
+                      value={capCeiling}
+                      onChange={(event) => setCapCeiling(event.target.value)}
+                    />
+                    <span aria-hidden className="text-sm text-muted-foreground">
+                      %
+                    </span>
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor="event-cap-premium">{t('scenarios:field.capPremium')}</Label>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      id="event-cap-premium"
+                      inputMode="decimal"
+                      value={capPremium}
+                      onChange={(event) => setCapPremium(event.target.value)}
+                    />
+                    <span aria-hidden className="text-sm text-muted-foreground">
+                      %
+                    </span>
+                  </div>
+                </div>
+              </>
             )}
 
             <div className="space-y-1">
@@ -204,7 +257,7 @@ export function ScenarioEditor({
               </div>
             )}
 
-            {kind !== 'PAYMENT_HOLIDAY' && (
+            {kind !== 'PAYMENT_HOLIDAY' && kind !== 'RATE_CAP' && (
               <div className="space-y-1 sm:col-span-2">
                 <Label htmlFor="event-effect">{t('scenarios:field.effect')}</Label>
                 <Select
@@ -248,6 +301,14 @@ export function ScenarioEditor({
 
                 {'amount' in event && (
                   <Money amount={event.amount} currency={loan.currency} whole />
+                )}
+
+                {event.kind === 'RATE_CAP' && (
+                  <span className="tabular">
+                    <Rate value={event.ceiling} decimals={2} />
+                    {' · '}
+                    <Rate value={event.premiumBps / 10_000} decimals={2} />
+                  </span>
                 )}
 
                 <span className="text-muted-foreground">
