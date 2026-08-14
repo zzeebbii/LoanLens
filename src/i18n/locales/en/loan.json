@@ -1,0 +1,98 @@
+{
+  "title": "Loan",
+  "field": {
+    "name": "Name",
+    "namePlaceholder": "e.g. Home loan",
+    "principal": "Amount borrowed",
+    "currency": "Currency",
+    "drawdownDate": "Drawdown date",
+    "drawdownDateHelp": "When the money was paid out. Interest accrues from this date to the first instalment.",
+    "firstPaymentPeriod": "First instalment",
+    "paymentDay": "Payment day",
+    "paymentDayHelp": "Moved to the last day of the month in months that are shorter.",
+    "termMonths": "Term",
+    "termMonthsHelp": "Total number of instalments.",
+    "amortization": "Repayment type",
+    "dayCount": "Interest calculation",
+    "rounding": "Rounding"
+  },
+  "amortization": {
+    "ANNUITY": "Annuity",
+    "ANNUITY_help": "The instalment stays level between rate changes. When the rate changes, the instalment is recalculated and the end date stays put."
+  },
+  "dayCount": {
+    "MONTHLY_NOMINAL": "One twelfth per month",
+    "MONTHLY_NOMINAL_help": "Every month counts as exactly a twelfth of a year. What most public loan calculators use.",
+    "ACT_360": "Actual days / 360",
+    "ACT_360_help": "Real elapsed days over a 360-day year. Common in Nordic and continental lending, and slightly more expensive than a nominal twelfth.",
+    "ACT_365": "Actual days / 365",
+    "ACT_365_help": "Real elapsed days over a 365-day year.",
+    "THIRTY_360_EU": "30E/360",
+    "THIRTY_360_EU_help": "Every month treated as 30 days, both dates capped at the 30th.",
+    "THIRTY_360_US": "30/360 bond basis",
+    "THIRTY_360_US_help": "Every month treated as 30 days, using the US bond convention."
+  },
+  "dayCountNotice": "Check this against your loan agreement. Over a full term the choice can change the total interest by thousands.",
+  "rounding": {
+    "HALF_UP": "Half up",
+    "HALF_EVEN": "Half to even",
+    "DOWN": "Down",
+    "UP": "Up"
+  },
+  "rate": {
+    "basis": "Interest rate",
+    "fixed": "Fixed",
+    "floating": "Follows a reference rate",
+    "annualRate": "Annual rate",
+    "reference": "Reference rate",
+    "provider": "Rate source",
+    "tenor": "Reference period",
+    "margin": "Margin",
+    "marginHelp": "Added to the reference rate. Your agreement states it in percentage points or basis points.",
+    "referenceFloor": "Floor the reference rate",
+    "referenceFloorHelp": "Many agreements stop the reference rate going below 0%, so a negative reference does not reduce your margin.",
+    "resetMonths": "Rate reset interval",
+    "firstResetPeriod": "First rate reset",
+    "rateRounding": "Round the applied rate",
+    "effectiveRate": "Rate applied",
+    "noFloor": "No floor"
+  },
+  "fees": {
+    "title": "Fees",
+    "monthlyServicing": "Servicing fee per instalment",
+    "perRateReset": "Fee on each rate reset"
+  },
+  "summary": {
+    "borrowed": "Borrowed",
+    "monthlyPayment": "Current instalment",
+    "currentRate": "Current rate",
+    "paidToDate": "Paid so far",
+    "interestToDate": "Interest so far",
+    "remainingBalance": "Still owed",
+    "payoffDate": "Final instalment",
+    "totalInterest": "Total interest",
+    "totalCost": "Total to repay",
+    "progress": "{{percent}} repaid",
+    "interestShare": "Interest is {{percent}} of what you borrowed"
+  },
+  "form": {
+    "createTitle": "Add a loan",
+    "editTitle": "Edit loan",
+    "createSubmit": "Add loan",
+    "editSubmit": "Save changes",
+    "deleteConfirm": "Delete this loan and all its scenarios? This cannot be undone."
+  },
+  "validation": {
+    "nameRequired": "Give the loan a name",
+    "principalPositive": "Enter the amount you borrowed",
+    "principalInvalid": "Enter an amount, for example 250000",
+    "termPositive": "Enter the number of instalments",
+    "termTooLong": "That is longer than 50 years",
+    "rateRange": "Enter a rate between 0 and 25%",
+    "marginRange": "Enter a margin between -5 and 25%",
+    "paymentDayRange": "Enter a day between 1 and 31",
+    "dateInvalid": "Enter a real date",
+    "periodInvalid": "Enter a month, for example 2021-03",
+    "firstPaymentBeforeDrawdown": "The first instalment cannot come before the drawdown date"
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "title": "Payments",
+  "tab": {
+    "all": "All",
+    "past": "Past",
+    "future": "Remaining"
+  },
+  "column": {
+    "index": "#",
+    "period": "Month",
+    "dueDate": "Due",
+    "openingBalance": "Opening balance",
+    "rate": "Rate",
+    "instalment": "Instalment",
+    "interest": "Interest",
+    "capital": "Capital",
+    "extra": "Extra",
+    "fees": "Fees",
+    "totalPaid": "Paid",
+    "closingBalance": "Balance"
+  },
+  "flag": {
+    "RATE_RESET": "Rate reset",
+    "PAYMENT_RECALCULATED": "Instalment recalculated",
+    "PAYMENT_HOLIDAY": "Payment holiday",
+    "INTEREST_CAPITALISED": "Interest added to the balance",
+    "NEGATIVE_AMORTIZATION": "Instalment did not cover the interest",
+    "EXTRA_PAYMENT": "Extra payment",
+    "BALANCE_CORRECTED": "Balance corrected",
+    "FINAL_PAYMENT": "Final instalment",
+    "BEYOND_ORIGINAL_TERM": "Past the original term"
+  },
+  "note": {
+    "finalAdjustment": "The last instalment settles the few cents left over by rounding, so the schedule runs one month past the term.",
+    "crossover": "From {{period}}, more of each instalment goes to capital than to interest.",
+    "reconstructed": "Past months are reconstructed from published rates. Correct any row that disagrees with your statement."
+  },
+  "rowCount": "{{count}} instalment",
+  "rowCount_other": "{{count}} instalments",
+  "yearTotal": "{{year}} total"
+}

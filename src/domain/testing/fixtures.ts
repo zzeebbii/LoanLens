@@ -19,6 +19,8 @@ import { fromMajorUnits, ZERO } from '@/domain/money'
  */
 
 export interface FixedRateLoanOverrides {
+  readonly id?: string
+  readonly name?: string
   readonly principal?: Money
   readonly termMonths?: number
   readonly annualRate?: number
@@ -33,8 +35,8 @@ export interface FixedRateLoanOverrides {
 
 export function fixedRateLoan(overrides: FixedRateLoanOverrides = {}): Loan {
   return {
-    id: 'fixture-fixed',
-    name: 'Fixture (fixed)',
+    id: overrides.id ?? 'fixture-fixed',
+    name: overrides.name ?? 'Fixture (fixed)',
     currency: 'EUR',
     principal: overrides.principal ?? fromMajorUnits(250_000),
     drawdownDate: overrides.drawdownDate ?? localDate(2021, 2, 15),
@@ -63,8 +65,8 @@ export interface FloatingRateLoanOverrides extends FixedRateLoanOverrides {
 export function floatingRateLoan(overrides: FloatingRateLoanOverrides = {}): Loan {
   return {
     ...fixedRateLoan(overrides),
-    id: 'fixture-floating',
-    name: 'Fixture (floating)',
+    id: overrides.id ?? 'fixture-floating',
+    name: overrides.name ?? 'Fixture (floating)',
     rateBasis: {
       kind: 'FLOATING',
       reference: { providerId: 'test', tenor: '12M' },

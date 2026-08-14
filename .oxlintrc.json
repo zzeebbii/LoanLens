@@ -23,8 +23,8 @@
 
     // Vite/React 19 use the automatic JSX runtime; React is never in scope.
     "react/react-in-jsx-scope": "off",
-    // Side-effect imports are how stylesheets are pulled into the bundle.
-    "import/no-unassigned-import": ["error", { "allow": ["**/*.css"] }]
+    // Side-effect imports are how stylesheets, and test-environment shims, are pulled in.
+    "import/no-unassigned-import": ["error", { "allow": ["**/*.css", "fake-indexeddb/auto"] }]
   },
   "overrides": [
     {
@@ -37,6 +37,15 @@
         // Helpers scoped to a `describe` block read better next to the cases that use
         // them than hoisted to module scope.
         "unicorn/consistent-function-scoping": "off"
+      }
+    },
+    {
+      "files": ["src/i18n/config.ts"],
+      "rules": {
+        // i18next's default export *is* the singleton instance, and `.use()` on it is the
+        // documented way to attach a plugin. The rule cannot tell that apart from a
+        // mistakenly-defaulted named import.
+        "import/no-named-as-default-member": "off"
       }
     },
     {

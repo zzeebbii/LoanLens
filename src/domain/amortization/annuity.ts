@@ -1,6 +1,6 @@
 import type { AmortizationStrategy, InstalmentInput } from '@/domain/amortization/strategy'
 
-import { divideByInteger, multiplyByRate } from '@/domain/money'
+import { divideByInteger, isPositive, max, money, multiplyByRate } from '@/domain/money'
 
 /**
  * Annuity repayment: a level instalment that fully amortises the balance over the
@@ -54,7 +54,15 @@ export const annuityStrategy: AmortizationStrategy = {
     // A negative periodic rate is possible in principle (a deeply negative reference with
     // a thin margin); the formula stays well-defined, so it is allowed through.
     const annuityFactor = -periodicRate / Math.expm1(-remainingPeriods * Math.log1p(periodicRate))
+    const instalment = multiplyByRate(balance, annuityFactor, rounding)
 
-    return multiplyByRate(balance, annuityFactor, rounding)
+    // Floor at one minor unit while anything is owed.
+    //
+    // A small balance spread over many periods produces a mathematically correct
+    // instalment below half a cent, which rounds to zero — and a zero instalment can never
+    // repay anything, so the schedule would run to its period limit and fail as
+    // non-amortising. A property test found this with €1 over 201 months. One cent is the
+    // smallest payment that makes progress.
+    return isPositive(balance) ? max(instalment, money(1n)) : instalment
   },
 }

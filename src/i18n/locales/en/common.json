@@ -1,0 +1,48 @@
+{
+  "app": {
+    "tagline": "Insights into your home loan",
+    "loading": "Loading…"
+  },
+  "nav": {
+    "portfolio": "Loans",
+    "settings": "Settings",
+    "skipToContent": "Skip to content"
+  },
+  "action": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "add": "Add",
+    "close": "Close",
+    "confirm": "Confirm",
+    "retry": "Try again",
+    "export": "Export",
+    "import": "Import",
+    "reset": "Reset"
+  },
+  "theme": {
+    "label": "Theme",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "Match system"
+  },
+  "empty": {
+    "noLoans": "No loans yet",
+    "noLoansHint": "Add your loan to see what it has cost you and what it will cost.",
+    "addFirstLoan": "Add your loan"
+  },
+  "storage": {
+    "ephemeralTitle": "Your browser is not storing data",
+    "ephemeralBody": "Anything you enter will be lost when you close this tab. Export a backup to keep it."
+  },
+  "units": {
+    "months": "{{count}} month",
+    "months_other": "{{count}} months",
+    "years": "{{count}} year",
+    "years_other": "{{count}} years",
+    "yearsAndMonths": "{{years}} and {{months}}",
+    "basisPoints": "{{value}} bp",
+    "perMonth": "{{value}} / month"
+  }
+}

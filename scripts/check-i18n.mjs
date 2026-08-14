@@ -40,6 +40,20 @@ const DYNAMIC_KEY_PREFIXES = [
 const KEY_USAGE_RE =
   /\bt\(\s*['"]([\w.:-]+)['"]|i18nKey\s*=\s*['"]([\w.:-]+)['"]|\btKey\s*:\s*['"]([\w.:-]+)['"]/g
 
+/**
+ * Strips comments so documentation is not mistaken for a call site.
+ *
+ * Doc comments in this codebase quote example calls like `t('loan:field.principal')`, and
+ * counting those as usage made every other key look unused.
+ *
+ * Line comments are only stripped when they begin a line, so a `//` inside a URL string
+ * survives. The tradeoff is deliberate: over-stripping could hide a real call and let an
+ * undefined key through, which is the failure that matters here.
+ */
+function stripComments(source) {
+  return source.replaceAll(/\/\*[\s\S]*?\*\//g, '').replaceAll(/^[ \t]*\/\/.*$/gm, '')
+}
+
 /** @returns {Promise<string[]>} */
 async function listDirectories(dir) {
   try {
@@ -164,7 +178,7 @@ async function main() {
   // 2. Every statically-referenced key must exist in the base locale.
   const usedKeys = new Set()
   for (const file of await collectSourceFiles(SRC)) {
-    const source = await readFile(file, 'utf8')
+    const source = stripComments(await readFile(file, 'utf8'))
     for (const match of source.matchAll(KEY_USAGE_RE)) {
       const key = match[1] ?? match[2] ?? match[3]
       if (!key) continue
@@ -179,10 +193,18 @@ async function main() {
   }
 
   // 3. Unused base keys are a warning, not a failure.
-  for (const key of baseKeys) {
-    const bare = key.slice(key.indexOf(':') + 1)
-    const isDynamic = DYNAMIC_KEY_PREFIXES.some((prefix) => bare.startsWith(prefix))
-    if (!usedKeys.has(key) && !isDynamic) warnings.push(`unused key "${key}"`)
+  //
+  // Skipped entirely when no key is referenced anywhere: that means the UI consuming them
+  // has not been built yet, and reporting every key as unused would bury the checks that
+  // matter under hundreds of lines of noise.
+  if (usedKeys.size === 0) {
+    console.log(`· No translation keys referenced yet — skipping the unused-key report.`)
+  } else {
+    for (const key of baseKeys) {
+      const bare = key.slice(key.indexOf(':') + 1)
+      const isDynamic = DYNAMIC_KEY_PREFIXES.some((prefix) => bare.startsWith(prefix))
+      if (!usedKeys.has(key) && !isDynamic) warnings.push(`unused key "${key}"`)
+    }
   }
 
   for (const warning of warnings) console.warn(`  ! ${warning}`)

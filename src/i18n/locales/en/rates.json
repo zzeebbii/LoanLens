@@ -1,0 +1,61 @@
+{
+  "title": "Interest rates",
+  "provider": {
+    "ecb": {
+      "label": "European Central Bank",
+      "description": "EURIBOR published by the ECB, monthly from January 1999."
+    },
+    "snapshot": {
+      "label": "Built-in rate data",
+      "description": "EURIBOR bundled with the app. Works offline and is at most a month behind."
+    },
+    "manual": {
+      "label": "Rates I enter myself",
+      "description": "For a reference rate the app cannot fetch, or figures taken from your own statements."
+    },
+    "network": "Fetches data over the internet",
+    "offline": "Works offline",
+    "privacyNote": "Rate requests ask only for a public interest-rate series. They contain nothing about you or your loan.",
+    "retrievedAt": "Updated {{date}}",
+    "neverRetrieved": "Entered by you"
+  },
+  "tenor": {
+    "1M": "1 month",
+    "3M": "3 months",
+    "6M": "6 months",
+    "12M": "12 months"
+  },
+  "chart": {
+    "referenceRate": "Reference rate",
+    "effectiveRate": "Your rate",
+    "resetMarker": "Rate reset"
+  },
+  "forecast": {
+    "title": "Rates from {{period}} onwards",
+    "explanation": "Nobody knows what rates will do. Pick an assumption and the projection will say which one it used.",
+    "HOLD_LAST": "Stay where they are",
+    "HOLD_LAST_help": "The latest published rate continues unchanged.",
+    "SHOCK": "Move by a fixed amount",
+    "SHOCK_help": "The latest rate plus or minus a set number of basis points.",
+    "FIXED": "A rate I choose",
+    "FIXED_help": "A flat rate for every future month.",
+    "CURVE": "A path I set out",
+    "CURVE_help": "Enter rates for specific months; the last one carries on from there.",
+    "assumptionLabel": "Assuming rates {{assumption}}"
+  },
+  "sensitivity": {
+    "title": "If rates move",
+    "explanation": "What each instalment and the total interest would become at different rates.",
+    "shock": "{{value}}",
+    "base": "As published",
+    "monthlyPayment": "Instalment",
+    "totalInterest": "Total interest",
+    "extraPerMonth": "Extra per month"
+  },
+  "status": {
+    "loading": "Fetching rates…",
+    "usingSnapshot": "Using the built-in rate data.",
+    "usingSnapshotBecause": "Could not reach the ECB, so the built-in data is being used instead.",
+    "missingRate": "No published rate for {{period}}. Choose what to assume for months beyond the published data."
+  }
+}

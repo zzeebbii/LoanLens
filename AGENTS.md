@@ -88,8 +88,15 @@ npm run lint:fix         # oxlint autofix
 npm run format           # oxfmt write (also sorts imports and Tailwind classes)
 ```
 
-`npm run check` = format check → lint → typecheck → boundaries → i18n → tests → build.
+`npm run check` = format check → lint → typecheck → boundaries → i18n → rate snapshot →
+tests with coverage → build. It runs exactly what CI runs, deliberately: when the two drift,
+the local check stops being worth trusting.
+
 **Run it before every commit.** Do not commit with a red check and a note to fix it later.
+
+One practical note: do not run a second test command in the background while `npm run check`
+is going. Both spawn worker pools, and the contention can turn a one-second suite into
+several minutes — which looks exactly like a performance bug in the code.
 
 ## Conventions
 

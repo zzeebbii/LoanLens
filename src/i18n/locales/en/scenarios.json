@@ -1,0 +1,61 @@
+{
+  "title": "What if",
+  "subtitle": "See what paying more would change.",
+  "baseline": "As it stands",
+  "create": "New scenario",
+  "field": {
+    "name": "Scenario name",
+    "namePlaceholder": "e.g. +200 a month",
+    "amount": "Extra amount",
+    "from": "Starting",
+    "until": "Until",
+    "untilOpen": "the end of the loan",
+    "effect": "What it changes"
+  },
+  "effect": {
+    "SHORTEN_TERM": "Finish sooner",
+    "SHORTEN_TERM_help": "Your instalment stays the same and the loan ends earlier. Saves the most interest.",
+    "LOWER_PAYMENT": "Pay less each month",
+    "LOWER_PAYMENT_help": "The end date stays the same and your instalment drops. Saves less interest but frees up monthly cash."
+  },
+  "event": {
+    "EXTRA_PAYMENT": "One-off payment",
+    "RECURRING_EXTRA": "Regular extra payment",
+    "PAYMENT_HOLIDAY": "Payment holiday",
+    "RATE_OVERRIDE": "Set the rate",
+    "BALANCE_CORRECTION": "Correct the balance",
+    "addEvent": "Add a change",
+    "empty": "No changes yet. Add one to see the effect."
+  },
+  "holiday": {
+    "interest": "During the holiday",
+    "PAY": "Keep paying the interest",
+    "PAY_help": "The balance stays where it is.",
+    "CAPITALISE": "Add the interest to the balance",
+    "CAPITALISE_help": "Costs more overall, because you then pay interest on that interest."
+  },
+  "comparison": {
+    "title": "Compared with as it stands",
+    "metric": "",
+    "baseline": "As it stands",
+    "scenario": "{{name}}",
+    "difference": "Difference",
+    "payoffDate": "Final instalment",
+    "monthsSaved": "Time saved",
+    "totalInterest": "Total interest",
+    "interestSaved": "Interest saved",
+    "monthlyPayment": "Instalment",
+    "extraPaid": "Extra paid in",
+    "totalPaid": "Total paid",
+    "totalSaved": "Total saved"
+  },
+  "insight": {
+    "shortenBeatsLower": "Finishing sooner saves {{amount}} more interest than lowering the instalment.",
+    "perUnit": "Every {{unit}} you overpay saves {{saved}} in interest.",
+    "breakEven": "From {{period}} you have spent less in total than you would have without overpaying.",
+    "breakEvenPeak": "Before then you are up to {{amount}} further out of pocket.",
+    "noBreakEven": "This scenario never costs less in total than doing nothing.",
+    "overpaymentNotACost": "An extra payment is not money lost — it clears principal you owed anyway. Only the interest it avoids is a saving."
+  },
+  "deleteConfirm": "Delete this scenario?"
+}

@@ -85,6 +85,26 @@ export type LoanEvent =
 
 export type LoanEventKind = LoanEvent['kind']
 
+/**
+ * A named what-if, saved against a loan.
+ *
+ * A scenario holds nothing but events, because that is all a scenario *is* — the engine
+ * runs it through exactly the same `replay` as the baseline. There is no separate code
+ * path for a projection, which is what makes comparing one to the baseline meaningful.
+ */
+export interface Scenario {
+  readonly id: string
+  readonly loanId: string
+  /** The user's own label. Not translated. */
+  readonly name: string
+  readonly events: readonly LoanEvent[]
+  /** ISO 8601 instant, for ordering the list. */
+  readonly createdAt: string
+}
+
+/** The implicit scenario every loan has: the schedule with no events at all. */
+export const BASELINE_SCENARIO_ID = 'baseline'
+
 /** True if `period` falls within `[from, until]`, treating a `null` end as open. */
 export function periodInRange(
   period: YearMonth,

@@ -1,0 +1,63 @@
+{
+  "capitalVsInterest": {
+    "title": "Where each instalment goes",
+    "description": "The interest share shrinks as the balance falls.",
+    "capital": "Capital",
+    "interest": "Interest",
+    "fees": "Fees"
+  },
+  "balance": {
+    "title": "What you still owe",
+    "description": "The balance over the life of the loan.",
+    "balance": "Balance",
+    "baselineSeries": "As it stands"
+  },
+  "byYear": {
+    "title": "Cost each year",
+    "description": "Interest and capital repaid in each calendar year."
+  },
+  "lifetimeSplit": {
+    "title": "What the loan costs in total",
+    "description": "Interest as a share of everything you repay.",
+    "principal": "Amount borrowed",
+    "interest": "Interest"
+  },
+  "rateHistory": {
+    "title": "The rate you have paid",
+    "description": "The reference rate, and your rate after the margin."
+  },
+  "paymentAnatomy": {
+    "title": "This instalment in detail",
+    "description": "How {{amount}} in {{period}} is divided up."
+  },
+  "sensitivity": {
+    "title": "If rates move",
+    "description": "The balance under different rate assumptions."
+  },
+  "comparison": {
+    "title": "What overpaying buys",
+    "description": "Finishing sooner against paying less each month."
+  },
+  "breakEven": {
+    "title": "When you come out ahead",
+    "description": "Total spent so far, with and without overpaying.",
+    "baseline": "Without overpaying",
+    "scenario": "With overpaying"
+  },
+  "interestHeatmap": {
+    "title": "Interest month by month",
+    "description": "Darker means more interest. Rate resets show up as steps."
+  },
+  "axis": {
+    "period": "Month",
+    "year": "Year",
+    "amount": "Amount",
+    "rate": "Rate"
+  },
+  "accessibility": {
+    "showTable": "Show as a table",
+    "hideTable": "Hide the table",
+    "tableCaption": "The data behind “{{title}}”"
+  },
+  "empty": "Nothing to chart yet."
+}

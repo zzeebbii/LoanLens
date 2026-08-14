@@ -1,0 +1,49 @@
+{
+  "title": "Settings",
+  "section": {
+    "appearance": "Appearance",
+    "language": "Language and formats",
+    "defaults": "Defaults for new loans",
+    "data": "Your data",
+    "about": "About"
+  },
+  "locale": {
+    "label": "Language",
+    "system": "Match my browser",
+    "formatNote": "Amounts and dates follow this language's conventions."
+  },
+  "defaults": {
+    "explanation": "Applied to loans you add from now on. Existing loans keep their own settings.",
+    "dayCount": "Interest calculation",
+    "rounding": "Rounding",
+    "rateProvider": "Rate source",
+    "forecast": "Future rates"
+  },
+  "data": {
+    "storedLocally": "Your loans are stored in this browser and never sent anywhere.",
+    "onlyRequest": "The app makes one kind of outbound request: fetching published interest rates. It carries nothing about you.",
+    "export": "Export a backup",
+    "exportHelp": "Downloads a file with your loans, scenarios and settings.",
+    "import": "Restore from a backup",
+    "importHelp": "Choose a file you exported earlier.",
+    "importMode": "How to import",
+    "importMerge": "Add to what is here",
+    "importMergeHelp": "Keeps your existing loans. Loans in the file replace ones with the same identity.",
+    "importReplace": "Replace everything",
+    "importReplaceHelp": "Deletes everything currently stored first. Cannot be undone.",
+    "importSuccess": "Imported {{loans}} and {{scenarios}}.",
+    "importedLoans": "{{count}} loan",
+    "importedLoans_other": "{{count}} loans",
+    "importedScenarios": "{{count}} scenario",
+    "importedScenarios_other": "{{count}} scenarios",
+    "clear": "Delete all my data",
+    "clearHelp": "Removes every loan, scenario and setting from this browser.",
+    "clearConfirm": "Delete everything? Export a backup first if you might want it back.",
+    "cleared": "Everything has been deleted."
+  },
+  "about": {
+    "disclaimer": "LoanLens is not financial advice and is not affiliated with the ECB. Check anything that matters against your lender's own figures.",
+    "rateSource": "Interest rates come from the ECB Data Portal, provided to the ECB by Refinitiv.",
+    "version": "Version {{version}}"
+  }
+}

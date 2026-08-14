@@ -50,11 +50,26 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `npm run refresh-rates` to refresh the snapshot, and `npm run check:snapshot` to validate
   the committed file independently of the runtime schema.
 - `docs/rate-providers.md` documenting the interface and how to implement one.
+- Local-first persistence: `LoanRepository` interface with an IndexedDB implementation via
+  Dexie, an in-memory implementation used both in tests and as the fallback when storage is
+  unavailable, and automatic selection between them.
+- A stored representation kept separate from domain types, with money as decimal minor-unit
+  strings so records survive JSON and structured cloning, and validation on read so one
+  corrupt record is a named error rather than a malformed loan.
+- Versioned, Zod-validated export and import. Merge or replace on import, a refusal to read
+  a format newer than the running build, and rejection of a backup whose scenarios reference
+  loans it does not contain.
+- i18n with i18next: eight namespaces, keys typed from the English resources so a typo is a
+  build error, and locale parity enforced in CI.
+- Locale-aware formatting through `Intl` throughout. Money reaches the screen as an exact
+  decimal string rather than a float, so nothing is lost at the last step.
 
 ### Changed
 
 - Upgraded to TypeScript 7, `@types/node` 26, `@vitejs/plugin-react` 6 and `lucide-react` 1.
   TypeScript 7 removed `baseUrl`, so path mappings are now written relative to `tsconfig.json`.
 - Node baseline raised to 24; CI runs on 24 and 26.
+- `npm run check` now runs the coverage-gated test command, matching CI. Previously it ran
+  the plain test command, so coverage could fail in CI while the local check passed.
 
 [Unreleased]: https://github.com/visma-zohaib-aslam/LoanLens/commits/main

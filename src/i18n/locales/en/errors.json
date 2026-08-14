@@ -1,0 +1,36 @@
+{
+  "generic": {
+    "title": "Something went wrong",
+    "body": "The error has been logged to the browser console.",
+    "recover": "Reload the page"
+  },
+  "missingRate": {
+    "title": "No rate for {{period}}",
+    "body": "Published rate data does not reach that far. Choose what to assume for later months."
+  },
+  "nonAmortizing": {
+    "title": "This loan never gets paid off",
+    "body": "The instalment does not cover the interest, so the balance grows. Check the rate, the term and the amount."
+  },
+  "rateProvider": {
+    "title": "Could not get rate data",
+    "unreachable": "{{provider}} could not be reached. The built-in rate data will be used instead.",
+    "invalidSnapshot": "The built-in rate data could not be read. Please report this."
+  },
+  "storage": {
+    "title": "Could not save",
+    "body": "Your browser refused to store the data. It may be out of space, or storage may be disabled.",
+    "quota": "There is no room left to store more data."
+  },
+  "import": {
+    "title": "Could not import this file",
+    "issues": "What went wrong:",
+    "andMore": "…and {{count}} more problem",
+    "andMore_other": "…and {{count}} more problems"
+  },
+  "notFound": {
+    "title": "Not found",
+    "body": "That loan or scenario does not exist. It may have been deleted.",
+    "backToPortfolio": "Back to your loans"
+  }
+}

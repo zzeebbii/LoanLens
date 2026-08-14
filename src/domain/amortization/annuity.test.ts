@@ -111,6 +111,23 @@ describe('annuityStrategy', () => {
     expect(isZero(rows.at(-1)!.closingBalance)).toBe(true)
   })
 
+  it('never rounds the instalment down to nothing', () => {
+    // Regression, found by a property test: €1 at a near-zero rate over 201 periods gives
+    // a mathematically correct instalment below half a cent, which rounds to zero — and a
+    // zero instalment repays nothing, so the loan would fail as non-amortising.
+    expect(instalment(1, 1.110_223_024_625_156_8e-16, 201)).toBe(1n)
+
+    const rows = replay({
+      loan: fixedRateLoan({
+        principal: fromMajorUnits(1),
+        termMonths: 201,
+        annualRate: 1e-14,
+      }),
+      referenceRateAt: noRates,
+    })
+    expect(isZero(rows.at(-1)!.closingBalance)).toBe(true)
+  })
+
   it('rejects inputs that cannot describe a schedule', () => {
     expect(() => instalment(1000, Number.NaN, 12)).toThrow(RangeError)
     expect(() => instalment(1000, 0.01, 0)).toThrow(RangeError)
