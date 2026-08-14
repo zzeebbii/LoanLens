@@ -8,13 +8,9 @@
   "column": {
     "index": "#",
     "period": "Month",
-    "dueDate": "Due",
-    "openingBalance": "Opening balance",
     "rate": "Rate",
-    "instalment": "Instalment",
     "interest": "Interest",
     "capital": "Capital",
-    "extra": "Extra",
     "fees": "Fees",
     "totalPaid": "Paid",
     "closingBalance": "Balance"
@@ -36,6 +32,5 @@
     "reconstructed": "Past months are reconstructed from published rates. Correct any row that disagrees with your statement."
   },
   "rowCount": "{{count}} instalment",
-  "rowCount_other": "{{count}} instalments",
-  "yearTotal": "{{year}} total"
+  "rowCount_other": "{{count}} instalments"
 }

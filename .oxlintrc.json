@@ -1,6 +1,11 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "react-perf", "typescript", "unicorn", "oxc", "import", "promise"],
+  // `react-perf` is deliberately absent. Its rules flag every inline handler and object
+  // literal passed as a prop, which is ordinary idiomatic React — the advice only pays off
+  // for memoized children, and this app memoizes nothing. Enabling it produced ~30 warnings
+  // whose only remedy was wrapping every callback in `useCallback` to satisfy a linter,
+  // which makes the code worse rather than faster.
+  "plugins": ["react", "typescript", "unicorn", "oxc", "import", "promise"],
   "categories": {
     "correctness": "error",
     "suspicious": "error",
@@ -12,7 +17,10 @@
     "es2024": true
   },
   "rules": {
-    "eqeqeq": "error",
+    // `x == null` is the one place loose equality is the clearest thing to write: it means
+    // "null or undefined", which is exactly the check needed against the `T | null |
+    // undefined` shapes query hooks produce. Everything else must be strict.
+    "eqeqeq": ["error", "always", { "null": "ignore" }],
     "no-console": ["error", { "allow": ["warn", "error"] }],
     "no-debugger": "error",
     "typescript/consistent-type-imports": "error",
@@ -40,7 +48,7 @@
       }
     },
     {
-      "files": ["src/i18n/config.ts"],
+      "files": ["src/i18n/config.ts", "src/app/testing/renderApp.tsx"],
       "rules": {
         // i18next's default export *is* the singleton instance, and `.use()` on it is the
         // documented way to attach a plugin. The rule cannot tell that apart from a

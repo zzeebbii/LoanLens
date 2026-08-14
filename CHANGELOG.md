@@ -63,6 +63,22 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   build error, and locale parity enforced in CI.
 - Locale-aware formatting through `Intl` throughout. Money reaches the screen as an exact
   decimal string rather than a float, so nothing is lost at the last step.
+- Application shell with type-safe routing, theme switching and a skip link, on Tailwind 4 and
+  hand-owned shadcn/ui primitives.
+- Portfolio view listing every loan with what is still owed, the current instalment and rate,
+  the payoff date and repayment progress; per-currency totals once there is more than one loan.
+- Loan create and edit form. Day count, rate rounding and the reference floor are first-class
+  and explained rather than hidden, because they are what decide whether the model agrees with
+  a real statement.
+- Payment schedule: virtualised table over the full term with per-row flags for rate resets,
+  overpayments and corrections, filters for past and remaining, and a yearly rollup.
+- Scenarios: a no-setup comparison of shortening the term against lowering the payment for the
+  same overpayment, plus saved scenarios built from overpayments and payment holidays.
+- Rate panel showing the source, margin, floor and every reset, with a rate-sensitivity table
+  computed by replaying the loan rather than by scaling the baseline.
+- Settings with per-loan defaults, the forecast assumption, and export, import and delete.
+- Component tests driving the real provider stack — the form is exercised by typing into
+  labelled fields and asserting on the `Loan` that comes out.
 
 ### Changed
 

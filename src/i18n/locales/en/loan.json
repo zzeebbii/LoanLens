@@ -12,7 +12,6 @@
     "paymentDayHelp": "Moved to the last day of the month in months that are shorter.",
     "termMonths": "Term",
     "termMonthsHelp": "Total number of instalments.",
-    "amortization": "Repayment type",
     "dayCount": "Interest calculation",
     "rounding": "Rounding"
   },
@@ -44,7 +43,6 @@
     "fixed": "Fixed",
     "floating": "Follows a reference rate",
     "annualRate": "Annual rate",
-    "reference": "Reference rate",
     "provider": "Rate source",
     "tenor": "Reference period",
     "margin": "Margin",
@@ -54,7 +52,6 @@
     "resetMonths": "Rate reset interval",
     "firstResetPeriod": "First rate reset",
     "rateRounding": "Round the applied rate",
-    "effectiveRate": "Rate applied",
     "noFloor": "No floor"
   },
   "fees": {
@@ -71,7 +68,6 @@
     "remainingBalance": "Still owed",
     "payoffDate": "Final instalment",
     "totalInterest": "Total interest",
-    "totalCost": "Total to repay",
     "progress": "{{percent}} repaid",
     "interestShare": "Interest is {{percent}} of what you borrowed"
   },

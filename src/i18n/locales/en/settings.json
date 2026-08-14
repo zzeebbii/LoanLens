@@ -1,16 +1,9 @@
 {
   "title": "Settings",
   "section": {
-    "appearance": "Appearance",
-    "language": "Language and formats",
     "defaults": "Defaults for new loans",
     "data": "Your data",
     "about": "About"
-  },
-  "locale": {
-    "label": "Language",
-    "system": "Match my browser",
-    "formatNote": "Amounts and dates follow this language's conventions."
   },
   "defaults": {
     "explanation": "Applied to loans you add from now on. Existing loans keep their own settings.",
@@ -43,7 +36,6 @@
   },
   "about": {
     "disclaimer": "LoanLens is not financial advice and is not affiliated with the ECB. Check anything that matters against your lender's own figures.",
-    "rateSource": "Interest rates come from the ECB Data Portal, provided to the ECB by Refinitiv.",
-    "version": "Version {{version}}"
+    "rateSource": "Interest rates come from the ECB Data Portal, provided to the ECB by Refinitiv."
   }
 }

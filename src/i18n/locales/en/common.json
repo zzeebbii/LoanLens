@@ -1,6 +1,5 @@
 {
   "app": {
-    "tagline": "Insights into your home loan",
     "loading": "Loading…"
   },
   "nav": {
@@ -15,11 +14,9 @@
     "edit": "Edit",
     "add": "Add",
     "close": "Close",
-    "confirm": "Confirm",
     "retry": "Try again",
     "export": "Export",
-    "import": "Import",
-    "reset": "Reset"
+    "import": "Import"
   },
   "theme": {
     "label": "Theme",

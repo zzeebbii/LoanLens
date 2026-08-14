@@ -36,15 +36,11 @@
   },
   "comparison": {
     "title": "Compared with as it stands",
-    "metric": "",
-    "baseline": "As it stands",
-    "scenario": "{{name}}",
     "difference": "Difference",
     "payoffDate": "Final instalment",
     "monthsSaved": "Time saved",
     "totalInterest": "Total interest",
     "interestSaved": "Interest saved",
-    "monthlyPayment": "Instalment",
     "extraPaid": "Extra paid in",
     "totalPaid": "Total paid",
     "totalSaved": "Total saved"

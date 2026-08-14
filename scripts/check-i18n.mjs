@@ -23,18 +23,43 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const SRC = path.join(ROOT, 'src')
 const LOCALES_DIR = path.join(SRC, 'i18n', 'locales')
 const BASE_LOCALE = 'en'
+/** Must match `defaultNS` in src/i18n/config.ts. */
+const DEFAULT_NAMESPACE = 'common'
 
 /**
- * Keys that are assembled at runtime and therefore cannot be found by a static
- * scan. Prefixes listed here are exempt from the "unused key" warning.
+ * Key groups assembled at runtime, which a static scan cannot see.
+ *
+ * Every one of these is written as `t(\`prefix.${value}\`)` over a domain enum — flags,
+ * day-count conventions, tenors — so the individual keys never appear as literals. Listing
+ * the prefixes here exempts them from the unused-key report without weakening the check that
+ * matters: a *referenced* key that does not exist is still an error.
  */
 const DYNAMIC_KEY_PREFIXES = [
-  'domain.amortization.',
-  'domain.dayCount.',
-  'domain.tenor.',
-  'rates.provider.',
-  'errors.',
+  'flag.',
+  'dayCount.',
+  'rounding.',
+  'amortization.',
+  'effect.',
+  'event.',
+  'holiday.',
+  'tenor.',
+  'forecast.',
+  'provider.',
+  'theme.',
+  'tab.',
+  // Validation messages are emitted as key strings by the Zod schemas in
+  // `features/loan/loanDraft.ts` and translated via `translateDynamic`, so they never appear
+  // as a literal inside a `t()` call.
+  'validation.',
 ]
+
+/**
+ * Suffixes i18next appends to resolve a plural form.
+ *
+ * `t('units.months', { count })` reads `units.months` or `units.months_other` depending on
+ * the count and the locale's plural rules, so only the base key ever appears in code.
+ */
+const PLURAL_SUFFIXES = ['_zero', '_one', '_two', '_few', '_many', '_other']
 
 /** Matches t('key'), t("key"), i18nKey="key" and tKey: 'key'. */
 const KEY_USAGE_RE =
@@ -135,12 +160,31 @@ async function collectSourceFiles(dir) {
   return found
 }
 
+/** Matches the namespace argument of `useTranslation(...)` / `withTranslation(...)`. */
+const NAMESPACE_DECLARATION = /(?:useTranslation|withTranslation)\(\s*(\[[^\]]*\]|'[^']*'|"[^"]*")/g
+
 /**
- * Normalises a used key to `namespace:key` form. Keys written without an
- * explicit namespace belong to the default namespace, `common`.
+ * The namespace an unprefixed key in this file resolves to.
+ *
+ * i18next resolves a bare key against the *first* namespace passed to `useTranslation`, not
+ * against the global default. Assuming `common` everywhere reported dozens of false failures
+ * for components that correctly write `t('title')` under `useTranslation('schedule')`.
+ *
+ * Falls back to `common`, which is the configured `defaultNS`, when a file references keys
+ * without declaring a namespace at all.
  */
-function normaliseKey(key) {
-  return key.includes(':') ? key : `common:${key}`
+function defaultNamespaceFor(source) {
+  const match = NAMESPACE_DECLARATION.exec(source)
+  NAMESPACE_DECLARATION.lastIndex = 0
+  if (!match?.[1]) return DEFAULT_NAMESPACE
+
+  const first = /['"]([^'"]+)['"]/.exec(match[1])
+  return first?.[1] ?? DEFAULT_NAMESPACE
+}
+
+/** Normalises a used key to `namespace:key` form. */
+function normaliseKey(key, fileNamespace) {
+  return key.includes(':') ? key : `${fileNamespace}:${key}`
 }
 
 async function main() {
@@ -179,10 +223,12 @@ async function main() {
   const usedKeys = new Set()
   for (const file of await collectSourceFiles(SRC)) {
     const source = stripComments(await readFile(file, 'utf8'))
+    const fileNamespace = defaultNamespaceFor(source)
+
     for (const match of source.matchAll(KEY_USAGE_RE)) {
       const key = match[1] ?? match[2] ?? match[3]
       if (!key) continue
-      const normalised = normaliseKey(key)
+      const normalised = normaliseKey(key, fileNamespace)
       usedKeys.add(normalised)
       if (!baseKeys.has(normalised)) {
         errors.push(
@@ -201,9 +247,17 @@ async function main() {
     console.log(`· No translation keys referenced yet — skipping the unused-key report.`)
   } else {
     for (const key of baseKeys) {
+      if (usedKeys.has(key)) continue
+
       const bare = key.slice(key.indexOf(':') + 1)
-      const isDynamic = DYNAMIC_KEY_PREFIXES.some((prefix) => bare.startsWith(prefix))
-      if (!usedKeys.has(key) && !isDynamic) warnings.push(`unused key "${key}"`)
+      const isDynamic = DYNAMIC_KEY_PREFIXES.some((prefix) => bare.includes(prefix))
+
+      // A plural variant counts as used when its base key is referenced.
+      const pluralSuffix = PLURAL_SUFFIXES.find((suffix) => key.endsWith(suffix))
+      const isUsedPlural =
+        pluralSuffix !== undefined && usedKeys.has(key.slice(0, -pluralSuffix.length))
+
+      if (!isDynamic && !isUsedPlural) warnings.push(`unused key "${key}"`)
     }
   }
 

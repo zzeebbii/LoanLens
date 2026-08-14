@@ -53,8 +53,6 @@
     "extraPerMonth": "Extra per month"
   },
   "status": {
-    "loading": "Fetching rates…",
-    "usingSnapshot": "Using the built-in rate data.",
     "usingSnapshotBecause": "Could not reach the ECB, so the built-in data is being used instead.",
     "missingRate": "No published rate for {{period}}. Choose what to assume for months beyond the published data."
   }
