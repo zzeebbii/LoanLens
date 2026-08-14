@@ -36,6 +36,12 @@ jobs:
 
       - uses: actions/configure-pages@v6
         id: pages
+        with:
+          # Turns Pages on for the repository if it is not already, rather than failing the
+          # deploy with a bare "Not Found" until someone visits Settings. The workflow already
+          # holds `pages: write`, so this needs no extra permission and is a no-op once the
+          # site exists.
+          enablement: true
 
       - name: Build
         # `base_path` comes from configure-pages, so the asset URLs match wherever Pages
