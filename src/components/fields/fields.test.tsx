@@ -2,7 +2,7 @@
 
 import { screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it, vi } from 'vitest'
+import { beforeAll, describe, expect, it, vi } from 'vitest'
 
 import { renderWithProviders } from '@/app/testing/renderApp'
 import { DateField } from '@/components/fields/DateField'
@@ -19,6 +19,19 @@ import { MonthField } from '@/components/fields/MonthField'
  * emits an ISO string the domain can parse. A picker that produced a subtly different format
  * would be worse than the native control it replaced.
  */
+/**
+ * The calendar is a lazily-imported chunk, so the first `findByRole('grid')` is really
+ * waiting on a dynamic import rather than on a render. On a loaded CI runner that import has
+ * overrun the default one-second `findBy` window and failed the suite.
+ *
+ * Importing the module once here means React's `lazy` resolves from the module cache instead
+ * of racing the clock. Raising the timeout instead would have hidden the variance rather than
+ * removed it, and left the same failure waiting for a slower machine.
+ */
+beforeAll(async () => {
+  await import('@/components/ui/calendar')
+})
+
 describe('DateField', () => {
   it('accepts a typed date, because a drawdown is often years back', async () => {
     const user = userEvent.setup()
