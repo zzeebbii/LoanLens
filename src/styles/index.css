@@ -48,26 +48,70 @@
   --input: oklch(0.91 0.008 265);
   --ring: oklch(0.52 0.14 250);
 
-  /* Categorical chart series. Placeholder values — revisited in the charts phase
-     against the dataviz contrast rules. Order is meaningful: series 1 is the
-     most important quantity on any chart. */
-  --chart-1: oklch(0.55 0.15 250);
-  --chart-2: oklch(0.65 0.14 190);
-  --chart-3: oklch(0.62 0.16 320);
-  --chart-4: oklch(0.7 0.15 75);
-  --chart-5: oklch(0.6 0.14 145);
-  --chart-6: oklch(0.58 0.17 20);
+  /*
+   * Chart colours.
+   *
+   * These are not chosen by eye. They are the first three slots of a palette
+   * validated with the dataviz validator in both modes — lightness band, chroma
+   * floor, colour-vision-deficiency separation, normal-vision separation and
+   * surface contrast. Worst adjacent CVD deltaE 9.2 light / 9.4 dark against a
+   * target of 8; worst normal-vision 27.6 / 26.5 against a floor of 15.
+   *
+   * Three slots, not more, deliberately: three is the count that clears the
+   * all-pairs gate, and no chart here needs a fourth identity. Anything that
+   * looks like it needs one is either an ordered scale (use the ramp below) or a
+   * chart that should be split.
+   *
+   * Slot order is the safety mechanism, not decoration. Do not reorder, and do
+   * not add a fourth by picking something that looks different.
+   *
+   * One known warning: aqua is 2.74:1 on the light surface, below 3:1. The relief
+   * rule applies and is satisfied — every chart carries a legend, direct labels
+   * and a data-table view, so identity never rests on that hue alone.
+   */
+  --chart-1: #2a78d6; /* blue */
+  --chart-2: #eb6834; /* orange */
+  --chart-3: #1baf7a; /* aqua */
 
-  /* Semantic roles for the loan domain, so a stacked area chart reads the same
-     way in every view. */
+  /*
+   * Domain roles. Charts reference these, never the slots directly, so capital is
+   * the same colour in every view and a palette change is one edit.
+   */
   --chart-capital: var(--chart-1);
-  --chart-interest: var(--chart-4);
+  --chart-interest: var(--chart-2);
   --chart-fees: var(--chart-3);
-  --chart-baseline: var(--muted-foreground);
-  --chart-scenario: var(--chart-5);
+  /* De-emphasis grey: the baseline is context, not a series competing for attention. */
+  --chart-baseline: #8a8a85;
+  --chart-scenario: var(--chart-1);
+  --chart-alternative: var(--chart-2);
 
-  --chart-grid: oklch(0.91 0.008 265);
+  /*
+   * Ordinal ramp for ordered scales — rate shocks, tiers.
+   *
+   * One hue, monotone lightness, adjacent gaps >= 0.06 L, light end clearing the
+   * surface at 2.06:1. A categorical palette would be wrong here: the categories
+   * have a natural order, and hue should carry it.
+   */
+  --ramp-1: #86b6ef;
+  --ramp-2: #5598e7;
+  --ramp-3: #2a78d6;
+  --ramp-4: #1c5cab;
+  --ramp-5: #104281;
+
+  /* Sequential ramp for continuous magnitude — the interest heatmap. */
+  --seq-100: #cde2fb;
+  --seq-200: #9ec5f4;
+  --seq-300: #6da7ec;
+  --seq-400: #3987e5;
+  --seq-500: #256abf;
+  --seq-600: #184f95;
+  --seq-700: #0d366b;
+
+  /* Chrome. One step off the surface, recessive: the data is the loud part. */
+  --chart-grid: oklch(0.92 0.006 265);
   --chart-axis: oklch(0.53 0.02 265);
+  /* The gap and ring that separate touching marks. Never a stroke around a mark. */
+  --chart-surface: var(--card);
 }
 
 .dark {
@@ -104,12 +148,22 @@
   --input: oklch(1 0 0 / 16%);
   --ring: oklch(0.7 0.14 250);
 
-  --chart-1: oklch(0.68 0.15 250);
-  --chart-2: oklch(0.75 0.13 190);
-  --chart-3: oklch(0.72 0.15 320);
-  --chart-4: oklch(0.79 0.14 75);
-  --chart-5: oklch(0.72 0.13 145);
-  --chart-6: oklch(0.7 0.16 20);
+  /*
+   * Dark mode is selected, not derived. These are the same three hues re-stepped
+   * for the dark surface and validated as a set against it — an automatic
+   * lighten/darken of the light values fails the lightness band.
+   */
+  --chart-1: #3987e5;
+  --chart-2: #d95926;
+  --chart-3: #199e70;
+
+  --chart-baseline: #7c7b74;
+
+  --ramp-1: #9ec5f4;
+  --ramp-2: #6da7ec;
+  --ramp-3: #3987e5;
+  --ramp-4: #256abf;
+  --ramp-5: #184f95;
 
   --chart-grid: oklch(1 0 0 / 10%);
   --chart-axis: oklch(0.7 0.016 265);
@@ -148,9 +202,10 @@
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
   --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
-  --color-chart-6: var(--chart-6);
+  --color-chart-capital: var(--chart-capital);
+  --color-chart-interest: var(--chart-interest);
+  --color-chart-fees: var(--chart-fees);
+  --color-chart-baseline: var(--chart-baseline);
 
   /* Tabular figures keep money columns from jittering as values change. */
   --font-mono:

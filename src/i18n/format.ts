@@ -118,6 +118,23 @@ export function formatMoneyCompact(amount: Money, currency: string, locale: stri
 }
 
 /**
+ * Compact money from a plain number of major units, for chart axis ticks.
+ *
+ * Takes a `number` rather than `Money` because an axis tick is generated *from the
+ * plotted geometry*, which is already a float — asking the caller to rebuild an exact
+ * amount just to round it away would be ceremony. Never use this for a figure a reader
+ * will treat as authoritative.
+ */
+export function formatAxisMoney(majorUnits: number, currency: string, locale: string): string {
+  return numberFormat(locale, {
+    style: 'currency',
+    currency,
+    notation: 'compact',
+    maximumFractionDigits: 1,
+  }).format(majorUnits)
+}
+
+/**
  * A rate as a percentage. `0.028550_87` becomes `2.855 %` (spacing per locale).
  *
  * Three decimal places by default, because that is the precision lenders quote and

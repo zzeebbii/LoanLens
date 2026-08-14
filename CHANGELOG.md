@@ -79,6 +79,20 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Settings with per-loan defaults, the forecast assumption, and export, import and delete.
 - Component tests driving the real provider stack — the form is exercised by typing into
   labelled fields and asserting on the `Loan` that comes out.
+- Charts, on a palette validated for colour-vision deficiency and surface contrast in both
+  light and dark rather than chosen by eye (see
+  [ADR 0004](./docs/adr/0004-validated-chart-palette.md)):
+  - Headline figures as stat tiles with sparklines.
+  - Capital versus interest per instalment over the term, with the crossover month called out.
+  - Remaining balance over the life of the loan.
+  - Cost per calendar year, split into interest, capital and fees.
+  - Lifetime cost as one labelled bar plus the ratio as a hero figure.
+  - The reference rate against the rate actually charged, with reset months marked.
+  - A single instalment broken into its parts, for any month worth looking at.
+  - Total interest at five different rates, coloured by an ordinal ramp.
+  - Interest month by month as a heatmap, where a rate reset shows as a whole row shifting.
+  - Every chart carries a legend, a keyboard-reachable table view and an accessible name.
+- The charts are loaded on demand, so a first visit does not pay for the charting library.
 
 ### Changed
 

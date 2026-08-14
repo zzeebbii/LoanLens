@@ -2,7 +2,7 @@ import type { LoanDetailSearch } from '@/app/router'
 
 import { Link, useNavigate, useParams, useSearch } from '@tanstack/react-router'
 import { PencilIcon, Trash2Icon } from 'lucide-react'
-import { useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { useDeleteLoan, useLoan } from '@/app/hooks/useLoans'
@@ -22,12 +22,22 @@ import {
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { yearMonth } from '@/domain/dates'
-import { ChartsPanel } from '@/features/charts/ChartsPanel'
 import { LoanSummary } from '@/features/loan/LoanSummary'
 import { RatesPanel } from '@/features/rates/RatesPanel'
 import { ScenariosPanel } from '@/features/scenarios/ScenariosPanel'
 import { SchedulePanel } from '@/features/schedule/SchedulePanel'
 import { ScheduleProblem } from '@/features/schedule/ScheduleProblem'
+
+/**
+ * The charts are loaded on demand.
+ *
+ * Recharts is around 420 kB of the bundle — a third of the whole app — and nothing outside
+ * this tab needs it. Splitting it here keeps the portfolio and the loan form, which are what
+ * a first visit actually loads, free of it.
+ */
+const ChartsPanel = lazy(async () => ({
+  default: (await import('@/features/charts/ChartsPanel')).ChartsPanel,
+}))
 
 const TABS = ['charts', 'schedule', 'scenarios', 'rates'] as const
 
@@ -120,11 +130,13 @@ export function LoanDetailPage() {
           </TabsList>
 
           <TabsContent value="charts">
-            <ChartsPanel
-              loan={loan}
-              rows={schedule?.rows ?? null}
-              series={rates.data?.series ?? null}
-            />
+            <Suspense fallback={<Skeleton className="h-96 w-full" />}>
+              <ChartsPanel
+                loan={loan}
+                rows={schedule?.rows ?? null}
+                series={rates.data?.series ?? null}
+              />
+            </Suspense>
           </TabsContent>
           <TabsContent value="schedule">
             <SchedulePanel loan={loan} rows={schedule?.rows ?? null} />

@@ -30,36 +30,23 @@ const DEFAULT_NAMESPACE = 'common'
  * Key groups assembled at runtime, which a static scan cannot see.
  *
  * Every one of these is written as `t(\`prefix.${value}\`)` over a domain enum — flags,
- * day-count conventions, tenors — so the individual keys never appear as literals. Listing
- * the prefixes here exempts them from the unused-key report without weakening the check that
+ * day-count conventions, tenors — plus the validation messages the Zod schemas in
+ * `features/loan/loanDraft.ts` emit as key strings. None appear as a literal inside a `t()`
+ * call, so a static scan cannot find them.
+ *
+ * Matching these exempts them from the unused-key report without weakening the check that
  * matters: a *referenced* key that does not exist is still an error.
  */
-const DYNAMIC_KEY_PREFIXES = [
-  'flag.',
-  'dayCount.',
-  'rounding.',
-  'amortization.',
-  'effect.',
-  'event.',
-  'holiday.',
-  'tenor.',
-  'forecast.',
-  'provider.',
-  'theme.',
-  'tab.',
-  // Validation messages are emitted as key strings by the Zod schemas in
-  // `features/loan/loanDraft.ts` and translated via `translateDynamic`, so they never appear
-  // as a literal inside a `t()` call.
-  'validation.',
-]
+const DYNAMIC_KEY_GROUPS =
+  /(?:^|\.)(?:flag|dayCount|rounding|amortization|effect|event|holiday|tenor|forecast|provider|theme|tab|validation)\./
 
 /**
- * Suffixes i18next appends to resolve a plural form.
+ * The suffixes i18next appends to resolve a plural form.
  *
  * `t('units.months', { count })` reads `units.months` or `units.months_other` depending on
  * the count and the locale's plural rules, so only the base key ever appears in code.
  */
-const PLURAL_SUFFIXES = ['_zero', '_one', '_two', '_few', '_many', '_other']
+const PLURAL_SUFFIX = /_(?:zero|one|two|few|many|other)$/
 
 /** Matches t('key'), t("key"), i18nKey="key" and tKey: 'key'. */
 const KEY_USAGE_RE =
@@ -250,12 +237,11 @@ async function main() {
       if (usedKeys.has(key)) continue
 
       const bare = key.slice(key.indexOf(':') + 1)
-      const isDynamic = DYNAMIC_KEY_PREFIXES.some((prefix) => bare.includes(prefix))
+      const isDynamic = DYNAMIC_KEY_GROUPS.test(bare)
 
       // A plural variant counts as used when its base key is referenced.
-      const pluralSuffix = PLURAL_SUFFIXES.find((suffix) => key.endsWith(suffix))
-      const isUsedPlural =
-        pluralSuffix !== undefined && usedKeys.has(key.slice(0, -pluralSuffix.length))
+      const withoutPlural = key.replace(PLURAL_SUFFIX, '')
+      const isUsedPlural = withoutPlural !== key && usedKeys.has(withoutPlural)
 
       if (!isDynamic && !isUsedPlural) warnings.push(`unused key "${key}"`)
     }

@@ -8,31 +8,40 @@
   },
   "balance": {
     "title": "What you still owe",
-    "description": "The balance over the life of the loan.",
+    "description": "What you still owe, from the first instalment to the last.",
     "balance": "Balance",
     "baselineSeries": "As it stands"
   },
   "byYear": {
     "title": "Cost each year",
-    "description": "Interest and capital repaid in each calendar year."
+    "description": "Interest and capital repaid in each calendar year.",
+    "total": "Paid that year"
   },
   "lifetimeSplit": {
     "title": "What the loan costs in total",
     "description": "Interest as a share of everything you repay.",
     "principal": "Amount borrowed",
-    "interest": "Interest"
+    "interest": "Interest",
+    "total": "Total to repay",
+    "ratioNote": "You repay {{percent}} more than you borrowed."
   },
   "rateHistory": {
     "title": "The rate you have paid",
-    "description": "The reference rate, and your rate after the margin."
+    "description": "The reference rate, and your rate after the margin.",
+    "applied": "Your rate",
+    "reference": "Reference rate",
+    "resetHere": "Rate reset this month",
+    "marginNote": "The gap between the two lines is your margin. It does not change when the reference rate does."
   },
   "paymentAnatomy": {
     "title": "This instalment in detail",
-    "description": "How {{amount}} in {{period}} is divided up."
+    "description": "How {{amount}} in {{period}} is divided up.",
+    "extra": "Extra payment",
+    "total": "Paid this month:"
   },
   "sensitivity": {
     "title": "If rates move",
-    "description": "The balance under different rate assumptions."
+    "description": "Total interest if the rate moved from here and stayed there. Darker means a higher rate."
   },
   "comparison": {
     "title": "What overpaying buys",
@@ -46,7 +55,10 @@
   },
   "interestHeatmap": {
     "title": "Interest month by month",
-    "description": "Darker means more interest. Rate resets show up as steps."
+    "description": "Darker means more interest. Rate resets show up as steps.",
+    "low": "Less",
+    "high": "More",
+    "hint": "Hover or focus a month to see what its interest was."
   },
   "axis": {
     "period": "Month",
@@ -59,5 +71,9 @@
     "hideTable": "Hide the table",
     "tableCaption": "The data behind “{{title}}”"
   },
-  "empty": "Nothing to chart yet."
+  "empty": "Nothing to chart yet.",
+  "crossoverNote": "From {{period}}, more of each instalment goes to capital than to interest.",
+  "kpi": {
+    "ofTotal": "Interest paid so far"
+  }
 }

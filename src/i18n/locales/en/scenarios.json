@@ -42,8 +42,7 @@
     "totalInterest": "Total interest",
     "interestSaved": "Interest saved",
     "extraPaid": "Extra paid in",
-    "totalPaid": "Total paid",
-    "totalSaved": "Total saved"
+    "totalPaid": "Total paid"
   },
   "insight": {
     "shortenBeatsLower": "Finishing sooner saves {{amount}} more interest than lowering the instalment.",
