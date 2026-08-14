@@ -6,7 +6,7 @@
 # hosting story. There is no server-side anything: the result is HTML, CSS, JS and one JSON
 # file of interest rates.
 
-FROM node:24-alpine AS build
+FROM node:26-alpine AS build
 
 WORKDIR /app
 
