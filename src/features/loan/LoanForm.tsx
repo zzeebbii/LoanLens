@@ -8,6 +8,8 @@ import { Controller, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 
 import { useRateProviders } from '@/app/providers/RateProviderContext'
+import { DateField } from '@/components/fields/DateField'
+import { MonthField } from '@/components/fields/MonthField'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -106,20 +108,48 @@ export function LoanForm({ defaultValues, submitLabel, onSubmit, onCancel }: Loa
             )}
           </FormField>
 
-          <FormField
-            label={t('loan:field.drawdownDate')}
-            help={t('loan:field.drawdownDateHelp')}
-            error={errorFor('drawdownDate')}
-          >
-            {(props) => <Input {...props} {...form.register('drawdownDate')} type="date" />}
-          </FormField>
+          <Controller
+            control={form.control}
+            name="drawdownDate"
+            render={({ field }) => (
+              <FormField
+                label={t('loan:field.drawdownDate')}
+                help={t('loan:field.drawdownDateHelp')}
+                error={errorFor('drawdownDate')}
+              >
+                {(props) => (
+                  <DateField
+                    {...props}
+                    value={field.value}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                    name={field.name}
+                  />
+                )}
+              </FormField>
+            )}
+          />
 
-          <FormField
-            label={t('loan:field.firstPaymentPeriod')}
-            error={errorFor('firstPaymentPeriod')}
-          >
-            {(props) => <Input {...props} {...form.register('firstPaymentPeriod')} type="month" />}
-          </FormField>
+          <Controller
+            control={form.control}
+            name="firstPaymentPeriod"
+            render={({ field }) => (
+              <FormField
+                label={t('loan:field.firstPaymentPeriod')}
+                error={errorFor('firstPaymentPeriod')}
+              >
+                {(props) => (
+                  <MonthField
+                    {...props}
+                    value={field.value}
+                    onChange={field.onChange}
+                    monthLabel={t('common:date.month')}
+                    yearLabel={t('common:date.year')}
+                  />
+                )}
+              </FormField>
+            )}
+          />
 
           <FormField
             label={t('loan:field.paymentDay')}
@@ -258,14 +288,26 @@ export function LoanForm({ defaultValues, submitLabel, onSubmit, onCancel }: Loa
                 )}
               </FormField>
 
-              <FormField
-                label={t('loan:rate.firstResetPeriod')}
-                error={errorFor('firstResetPeriod')}
-              >
-                {(props) => (
-                  <Input {...props} {...form.register('firstResetPeriod')} type="month" />
+              <Controller
+                control={form.control}
+                name="firstResetPeriod"
+                render={({ field }) => (
+                  <FormField
+                    label={t('loan:rate.firstResetPeriod')}
+                    error={errorFor('firstResetPeriod')}
+                  >
+                    {(props) => (
+                      <MonthField
+                        {...props}
+                        value={field.value}
+                        onChange={field.onChange}
+                        monthLabel={t('common:date.month')}
+                        yearLabel={t('common:date.year')}
+                      />
+                    )}
+                  </FormField>
                 )}
-              </FormField>
+              />
 
               <Controller
                 control={form.control}

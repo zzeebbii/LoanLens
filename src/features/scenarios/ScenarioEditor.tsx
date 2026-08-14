@@ -7,6 +7,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { useCurrentPeriod } from '@/app/hooks/useCurrentPeriod'
+import { MonthField } from '@/components/fields/MonthField'
 import { Money } from '@/components/Money'
 import { Period } from '@/components/Period'
 import { Button } from '@/components/ui/button'
@@ -20,6 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Switch } from '@/components/ui/switch'
 import { parseYearMonth } from '@/domain/dates'
 import { fromMajorUnits } from '@/domain/money'
 import { EXTRA_PAYMENT_EFFECTS } from '@/domain/scenario'
@@ -163,24 +165,42 @@ export function ScenarioEditor({
 
             <div className="space-y-1">
               <Label htmlFor="event-from">{t('scenarios:field.from')}</Label>
-              <Input
+              <MonthField
                 id="event-from"
-                type="month"
                 value={from}
-                onChange={(event) => setFrom(event.target.value)}
+                onChange={setFrom}
+                monthLabel={t('common:date.month')}
+                yearLabel={t('common:date.year')}
               />
             </div>
 
             {kind !== 'EXTRA_PAYMENT' && (
               <div className="space-y-1">
                 <Label htmlFor="event-until">{t('scenarios:field.until')}</Label>
-                <Input
-                  id="event-until"
-                  type="month"
-                  value={until}
-                  onChange={(event) => setUntil(event.target.value)}
-                  placeholder={t('scenarios:field.untilOpen')}
-                />
+                {/*
+                 * An open-ended range is the common case for a standing overpayment, and it
+                 * has no month to pick — so it is an explicit choice rather than an empty
+                 * field the user has to guess the meaning of.
+                 */}
+                <div className="flex items-center gap-2">
+                  <Switch
+                    id="event-until-open"
+                    checked={until === ''}
+                    onCheckedChange={(open) => setUntil(open ? '' : currentPeriod)}
+                  />
+                  <label htmlFor="event-until-open" className="text-sm text-muted-foreground">
+                    {t('scenarios:field.untilOpenOption')}
+                  </label>
+                </div>
+                {until !== '' && (
+                  <MonthField
+                    id="event-until"
+                    value={until}
+                    onChange={setUntil}
+                    monthLabel={t('common:date.month')}
+                    yearLabel={t('common:date.year')}
+                  />
+                )}
               </div>
             )}
 

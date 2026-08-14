@@ -93,6 +93,13 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   - Interest month by month as a heatmap, where a rate reset shows as a whole row shifting.
   - Every chart carries a legend, a keyboard-reachable table view and an accessible name.
 - The charts are loaded on demand, so a first visit does not pay for the charting library.
+- A date field combining a typed input with a calendar popover — typing reaches a drawdown
+  date years back far faster than clicking, and the calendar is better for a nearby date.
+- A month field built from a month and a year select, for the fields that want a month rather
+  than a day. Picking a month by clicking a day and silently discarding the day is the kind
+  of interface that makes people distrust the figures.
+- The calendar grid is loaded when its popover first opens, so it costs nothing on a visit
+  that never opens it.
 - GitHub Pages deployment, running the full check gate before publishing, with the Pages base
   path applied and a `404.html` fallback so deep links survive a refresh.
 - Scheduled monthly refresh of the bundled EURIBOR snapshot, which commits only when the
@@ -103,6 +110,16 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Dependabot for npm, GitHub Actions and Docker, grouped so a month of updates is a handful of
   reviewable pull requests rather than forty. `oxfmt` is excluded: it is pre-1.0 and a bump
   reformats the codebase, which belongs in its own commit.
+
+### Fixed
+
+- Restored the pointer cursor on interactive controls. Tailwind 4's preflight dropped the
+  `cursor: pointer` browsers apply to buttons, so nothing in the app looked clickable on
+  hover — most visibly the loan page's tabs, which have no other affordance saying they are
+  interactive. Fixed once at the base layer rather than per component.
+- Replaced the native `type="date"` and `type="month"` inputs. They worked, but rendered the
+  browser's own widget, which ignores the app's styling entirely — and `type="month"` is
+  unimplemented in some browsers, where it degrades to a bare text box.
 
 ### Changed
 

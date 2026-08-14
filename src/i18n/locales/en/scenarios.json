@@ -10,7 +10,8 @@
     "from": "Starting",
     "until": "Until",
     "untilOpen": "the end of the loan",
-    "effect": "What it changes"
+    "effect": "What it changes",
+    "untilOpenOption": "The rest of the loan"
   },
   "effect": {
     "SHORTEN_TERM": "Finish sooner",

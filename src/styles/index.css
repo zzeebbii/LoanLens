@@ -224,6 +224,28 @@
       'calt' 1;
   }
 
+  /*
+   * Restore the pointer cursor on things you click.
+   *
+   * Tailwind 4's preflight dropped the `cursor: pointer` that browsers apply to buttons,
+   * on the reasoning that native buttons show an arrow. The effect here was that nothing
+   * in the app looked clickable on hover — most visibly the loan page's tabs, which have
+   * no other affordance saying they are interactive.
+   *
+   * Applied once at the base layer rather than as a class on each component, so a control
+   * added later cannot forget it. Disabled controls keep `not-allowed`, which the
+   * component classes set and which wins on specificity.
+   */
+  button:not(:disabled),
+  [role='button']:not([aria-disabled='true']),
+  [role='tab']:not([aria-disabled='true']),
+  [role='option']:not([aria-disabled='true']),
+  label[for],
+  summary,
+  select:not(:disabled) {
+    cursor: pointer;
+  }
+
   /* Money and rates are compared column-wise; proportional digits make that
      needlessly hard to scan. */
   .tabular {

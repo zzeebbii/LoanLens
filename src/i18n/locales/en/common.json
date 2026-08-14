@@ -41,5 +41,10 @@
     "yearsAndMonths": "{{years}} and {{months}}",
     "basisPoints": "{{value}} bp",
     "perMonth": "{{value}} / month"
+  },
+  "date": {
+    "openCalendar": "Open the calendar",
+    "month": "Month",
+    "year": "Year"
   }
 }
