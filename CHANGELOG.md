@@ -132,6 +132,19 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Replaced the native `type="date"` and `type="month"` inputs. They worked, but rendered the
   browser's own widget, which ignores the app's styling entirely — and `type="month"` is
   unimplemented in some browsers, where it degrades to a bare text box.
+- The Docker image did not start. Dropping to the `nginx` user left the runtime paths nginx
+  writes — its temp caches and pid file — owned by root, so the master exited immediately
+  with a permission error on `/var/cache/nginx/client_temp`.
+- The container served none of its security headers. nginx inherits `add_header` from an
+  outer block only while the inner block sets no header of its own, so every location that
+  set a `Cache-Control` silently discarded the content-security policy, `nosniff` and the
+  referrer policy declared at server level. That was every path the app is served on,
+  the HTML document included. The headers now live in a snippet each location includes.
+- Assets no longer return two `Cache-Control` headers, one from `expires` and one added
+  alongside it.
+- The container listens on IPv6 explicitly. The base image's entrypoint script tries to add
+  this by rewriting the config at boot, which cannot work once the config is root-owned and
+  nginx has dropped privileges.
 
 ### Changed
 

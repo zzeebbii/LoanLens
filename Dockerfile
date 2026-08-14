@@ -28,6 +28,19 @@ FROM nginx:1.29-alpine AS serve
 # above 1024 lets it drop to the unprivileged user.
 COPY --from=build /app/dist /usr/share/nginx/html
 COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
+COPY docker/security-headers.conf /etc/nginx/snippets/security-headers.conf
+
+# Dropping to `nginx` is not enough on its own: the base image leaves the paths nginx writes
+# at runtime owned by root, so an unprivileged master exits immediately with
+# `mkdir() "/var/cache/nginx/client_temp" failed (13: Permission denied)`. The temp caches
+# and the pid file have to change hands here, while we are still root.
+#
+# The `user` directive in the stock nginx.conf is dropped for the same reason — it is
+# meaningless once the master is not privileged, and it logs a warning on every start.
+RUN chown -R nginx:nginx /var/cache/nginx \
+  && touch /var/run/nginx.pid \
+  && chown nginx:nginx /var/run/nginx.pid \
+  && sed -i '/^user  *nginx;/d' /etc/nginx/nginx.conf
 
 USER nginx
 EXPOSE 8080
