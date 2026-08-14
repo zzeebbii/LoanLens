@@ -22,7 +22,7 @@ ENV BASE_PATH=/
 RUN npm run build
 
 
-FROM nginx:1.29-alpine AS serve
+FROM nginx:1.31-alpine AS serve
 
 # `nginx:alpine` runs as root by default to bind port 80. Copying in a config that listens
 # above 1024 lets it drop to the unprivileged user.
