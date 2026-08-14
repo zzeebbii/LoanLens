@@ -1,0 +1,177 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
+/* Dark mode is driven by a class on <html>, set by src/app/theme.ts and by the
+   inline bootstrap script in index.html. */
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * Design tokens.
+ *
+ * Every colour used anywhere in the app — UI *and* charts — resolves to one of
+ * these variables. Charts must never hardcode a hex value; see
+ * src/components/charts/palette.ts.
+ */
+:root {
+  --radius: 0.65rem;
+
+  --background: oklch(0.995 0.002 265);
+  --foreground: oklch(0.21 0.02 265);
+
+  --card: oklch(1 0 0);
+  --card-foreground: var(--foreground);
+  --popover: oklch(1 0 0);
+  --popover-foreground: var(--foreground);
+
+  --primary: oklch(0.52 0.14 250);
+  --primary-foreground: oklch(0.99 0.005 250);
+
+  --secondary: oklch(0.96 0.008 265);
+  --secondary-foreground: oklch(0.28 0.02 265);
+
+  --muted: oklch(0.96 0.008 265);
+  --muted-foreground: oklch(0.53 0.02 265);
+
+  --accent: oklch(0.95 0.02 250);
+  --accent-foreground: oklch(0.28 0.03 250);
+
+  --destructive: oklch(0.58 0.19 27);
+  --destructive-foreground: oklch(0.99 0.005 27);
+
+  --success: oklch(0.58 0.13 155);
+  --success-foreground: oklch(0.99 0.005 155);
+
+  --warning: oklch(0.72 0.15 75);
+  --warning-foreground: oklch(0.22 0.04 75);
+
+  --border: oklch(0.91 0.008 265);
+  --input: oklch(0.91 0.008 265);
+  --ring: oklch(0.52 0.14 250);
+
+  /* Categorical chart series. Placeholder values — revisited in the charts phase
+     against the dataviz contrast rules. Order is meaningful: series 1 is the
+     most important quantity on any chart. */
+  --chart-1: oklch(0.55 0.15 250);
+  --chart-2: oklch(0.65 0.14 190);
+  --chart-3: oklch(0.62 0.16 320);
+  --chart-4: oklch(0.7 0.15 75);
+  --chart-5: oklch(0.6 0.14 145);
+  --chart-6: oklch(0.58 0.17 20);
+
+  /* Semantic roles for the loan domain, so a stacked area chart reads the same
+     way in every view. */
+  --chart-capital: var(--chart-1);
+  --chart-interest: var(--chart-4);
+  --chart-fees: var(--chart-3);
+  --chart-baseline: var(--muted-foreground);
+  --chart-scenario: var(--chart-5);
+
+  --chart-grid: oklch(0.91 0.008 265);
+  --chart-axis: oklch(0.53 0.02 265);
+}
+
+.dark {
+  --background: oklch(0.17 0.012 265);
+  --foreground: oklch(0.96 0.006 265);
+
+  --card: oklch(0.21 0.014 265);
+  --card-foreground: var(--foreground);
+  --popover: oklch(0.21 0.014 265);
+  --popover-foreground: var(--foreground);
+
+  --primary: oklch(0.7 0.14 250);
+  --primary-foreground: oklch(0.18 0.03 250);
+
+  --secondary: oklch(0.27 0.016 265);
+  --secondary-foreground: oklch(0.94 0.008 265);
+
+  --muted: oklch(0.27 0.016 265);
+  --muted-foreground: oklch(0.7 0.016 265);
+
+  --accent: oklch(0.3 0.03 250);
+  --accent-foreground: oklch(0.94 0.01 250);
+
+  --destructive: oklch(0.66 0.18 27);
+  --destructive-foreground: oklch(0.16 0.03 27);
+
+  --success: oklch(0.7 0.14 155);
+  --success-foreground: oklch(0.16 0.03 155);
+
+  --warning: oklch(0.79 0.14 75);
+  --warning-foreground: oklch(0.2 0.04 75);
+
+  --border: oklch(1 0 0 / 12%);
+  --input: oklch(1 0 0 / 16%);
+  --ring: oklch(0.7 0.14 250);
+
+  --chart-1: oklch(0.68 0.15 250);
+  --chart-2: oklch(0.75 0.13 190);
+  --chart-3: oklch(0.72 0.15 320);
+  --chart-4: oklch(0.79 0.14 75);
+  --chart-5: oklch(0.72 0.13 145);
+  --chart-6: oklch(0.7 0.16 20);
+
+  --chart-grid: oklch(1 0 0 / 10%);
+  --chart-axis: oklch(0.7 0.016 265);
+}
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-chart-6: var(--chart-6);
+
+  /* Tabular figures keep money columns from jittering as values change. */
+  --font-mono:
+    ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings:
+      'rlig' 1,
+      'calt' 1;
+  }
+
+  /* Money and rates are compared column-wise; proportional digits make that
+     needlessly hard to scan. */
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+}
