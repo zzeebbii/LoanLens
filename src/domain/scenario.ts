@@ -1,0 +1,180 @@
+import type { YearMonth } from '@/domain/dates'
+import type { Money } from '@/domain/money'
+
+import { compareYearMonth } from '@/domain/dates'
+import { add, ZERO } from '@/domain/money'
+
+/**
+ * Events that change how a loan plays out.
+ *
+ * A scenario is not a special mode in the engine — it is just a different array of
+ * these. "What if I pay an extra €200 a month" and "what actually happened" run through
+ * exactly the same `replay`, which is what makes comparing them meaningful.
+ */
+
+/**
+ * What an extra payment buys.
+ *
+ * This is the distinction the whole app exists to make visible, and lenders make you
+ * choose:
+ *
+ * - `SHORTEN_TERM` — the instalment stays put and the loan finishes sooner. Saves the
+ *   most interest, because every euro of overpayment removes the interest that would
+ *   have accrued on it for the entire remaining term.
+ * - `LOWER_PAYMENT` — the payoff date stays put and the instalment is recalculated
+ *   downward over the remaining term. Saves less interest, but frees monthly cash.
+ */
+export const EXTRA_PAYMENT_EFFECTS = ['SHORTEN_TERM', 'LOWER_PAYMENT'] as const
+
+export type ExtraPaymentEffect = (typeof EXTRA_PAYMENT_EFFECTS)[number]
+
+/** What happens to interest that falls due during a payment holiday. */
+export const HOLIDAY_INTEREST_HANDLING = ['PAY', 'CAPITALISE'] as const
+
+export type HolidayInterestHandling = (typeof HOLIDAY_INTEREST_HANDLING)[number]
+
+export type LoanEvent =
+  /** A single lump sum, paid alongside the instalment for `period`. */
+  | {
+      readonly kind: 'EXTRA_PAYMENT'
+      readonly period: YearMonth
+      readonly amount: Money
+      readonly effect: ExtraPaymentEffect
+    }
+  /** A standing overpayment. `until` of `null` means "for the rest of the loan". */
+  | {
+      readonly kind: 'RECURRING_EXTRA'
+      readonly from: YearMonth
+      readonly until: YearMonth | null
+      readonly amount: Money
+      readonly effect: ExtraPaymentEffect
+    }
+  /**
+   * Amortisation is suspended. With `PAY` the borrower still services the interest;
+   * with `CAPITALISE` it is added to the balance and earns interest thereafter.
+   */
+  | {
+      readonly kind: 'PAYMENT_HOLIDAY'
+      readonly from: YearMonth
+      readonly until: YearMonth
+      readonly interest: HolidayInterestHandling
+    }
+  /**
+   * Forces the applied rate, ignoring the reference. Covers a rate the app cannot
+   * fetch, a negotiated rate, and stress scenarios ("what if it hits 6%").
+   */
+  | {
+      readonly kind: 'RATE_OVERRIDE'
+      readonly from: YearMonth
+      readonly until: YearMonth | null
+      readonly annualRate: number
+    }
+  /**
+   * Pins the balance to a figure taken from a real statement.
+   *
+   * The model will drift from a lender's own numbers wherever a rounding or day-count
+   * rule is not exactly reproduced. Rather than let that drift compound silently for
+   * twenty years, the user can anchor the schedule to a known-good balance and have
+   * everything after it recalculated from there.
+   */
+  | {
+      readonly kind: 'BALANCE_CORRECTION'
+      readonly period: YearMonth
+      readonly closingBalance: Money
+    }
+
+export type LoanEventKind = LoanEvent['kind']
+
+/** True if `period` falls within `[from, until]`, treating a `null` end as open. */
+export function periodInRange(
+  period: YearMonth,
+  from: YearMonth,
+  until: YearMonth | null,
+): boolean {
+  if (compareYearMonth(period, from) < 0) return false
+  return until === null || compareYearMonth(period, until) <= 0
+}
+
+export interface ExtraPaymentsForPeriod {
+  /** Overpayments that shorten the term. */
+  readonly shortenTerm: Money
+  /** Overpayments that reduce the instalment. */
+  readonly lowerPayment: Money
+  readonly total: Money
+}
+
+/**
+ * Totals the overpayments landing in one period, split by effect.
+ *
+ * Kept split rather than summed because the two effects are applied differently: only
+ * a `LOWER_PAYMENT` overpayment triggers an instalment recalculation.
+ */
+export function extraPaymentsFor(
+  period: YearMonth,
+  events: readonly LoanEvent[],
+): ExtraPaymentsForPeriod {
+  let shortenTerm = ZERO
+  let lowerPayment = ZERO
+
+  for (const event of events) {
+    let amount: Money | null = null
+    let effect: ExtraPaymentEffect | null = null
+
+    if (event.kind === 'EXTRA_PAYMENT' && event.period === period) {
+      amount = event.amount
+      effect = event.effect
+    } else if (event.kind === 'RECURRING_EXTRA' && periodInRange(period, event.from, event.until)) {
+      amount = event.amount
+      effect = event.effect
+    }
+
+    if (amount === null || effect === null) continue
+    if (effect === 'SHORTEN_TERM') shortenTerm = add(shortenTerm, amount)
+    else lowerPayment = add(lowerPayment, amount)
+  }
+
+  return { shortenTerm, lowerPayment, total: add(shortenTerm, lowerPayment) }
+}
+
+/** The holiday covering `period`, if any. */
+export function holidayFor(
+  period: YearMonth,
+  events: readonly LoanEvent[],
+): HolidayInterestHandling | null {
+  for (const event of events) {
+    if (event.kind === 'PAYMENT_HOLIDAY' && periodInRange(period, event.from, event.until)) {
+      return event.interest
+    }
+  }
+  return null
+}
+
+/**
+ * The rate override in force for `period`, if any.
+ *
+ * Later events win, so a user can layer a correction over a broad assumption without
+ * having to edit the original.
+ */
+export function rateOverrideFor(period: YearMonth, events: readonly LoanEvent[]): number | null {
+  let override: number | null = null
+  for (const event of events) {
+    if (event.kind === 'RATE_OVERRIDE' && periodInRange(period, event.from, event.until)) {
+      override = event.annualRate
+    }
+  }
+  return override
+}
+
+/** The balance correction anchored to `period`, if any. Later events win. */
+export function balanceCorrectionFor(
+  period: YearMonth,
+  events: readonly LoanEvent[],
+): Money | null {
+  let correction: Money | null = null
+  for (const event of events) {
+    if (event.kind === 'BALANCE_CORRECTION' && event.period === period) {
+      correction = event.closingBalance
+    }
+  }
+  return correction
+}

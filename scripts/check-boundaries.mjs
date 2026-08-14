@@ -52,6 +52,17 @@ const RULES = [
   },
 ]
 
+/**
+ * Packages a `*.test.ts` file inside a pure layer may import.
+ *
+ * The test runner is not a runtime dependency of the code under test, so allowing it
+ * does not weaken the rule. Layer restrictions still apply in full: a test in `domain/`
+ * that imports from `features/` is still a violation, which is the part that matters.
+ */
+const TEST_ONLY_PACKAGES = new Set(['vitest', 'fast-check'])
+
+const TEST_FILE = /\.test\.tsx?$/
+
 /** Bare specifiers that are never acceptable in a pure layer, listed for a better error. */
 const ALWAYS_FORBIDDEN = new Set([
   'react',
@@ -164,6 +175,8 @@ async function main() {
             )
           } else if (ALWAYS_FORBIDDEN.has(specifier) || ALWAYS_FORBIDDEN.has(packageName)) {
             violations.push(`${relative}: imports "${specifier}". ${rule.rationale}`)
+          } else if (TEST_FILE.test(file) && TEST_ONLY_PACKAGES.has(packageName)) {
+            // Test tooling in a test file: allowed.
           } else if (!rule.packages.includes(packageName)) {
             violations.push(
               `${relative}: imports package "${specifier}", which is not in the allowlist for ${rule.dir}/ [${rule.packages.join(', ') || 'none'}]. ${rule.rationale}`,

@@ -26,9 +26,10 @@
     "allowImportingTsExtensions": true,
     "types": ["vite/client"],
 
-    "baseUrl": ".",
+    // TypeScript 7 removed `baseUrl`; path mappings are now resolved relative to
+    // this file, so they must be written with an explicit leading "./".
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["./src/*"]
     }
   },
   "include": ["src", "vite.config.ts", "vitest.config.ts"]

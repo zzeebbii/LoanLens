@@ -31,7 +31,12 @@
       "files": ["src/**/*.test.ts", "src/**/*.test.tsx", "scripts/**/*.mjs"],
       "rules": {
         "no-console": "off",
-        "typescript/no-non-null-assertion": "off"
+        // Tests index into fixtures and result arrays constantly; an assertion there
+        // fails the test loudly, which is exactly what a test should do.
+        "typescript/no-non-null-assertion": "off",
+        // Helpers scoped to a `describe` block read better next to the cases that use
+        // them than hoisted to module scope.
+        "unicorn/consistent-function-scoping": "off"
       }
     },
     {
