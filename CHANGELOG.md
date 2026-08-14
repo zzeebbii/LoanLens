@@ -37,6 +37,19 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   invariant tests covering exact principal repayment, monotonic balance and per-row
   reconciliation.
 - `docs/domain-model.md` documenting the engine and the reasoning behind it.
+- Pluggable rate providers behind a `RateProvider` interface, with a registry so a
+  user-supplied source resolves for any loan that names it.
+- ECB Data Portal provider covering EURIBOR 1M/3M/6M/12M back to January 1999, parsed from
+  SDMX CSV with columns located by header name.
+- Bundled rate snapshot committed at `public/data/euribor.json` — 1,324 real observations —
+  giving a fast first paint, an offline mode and a fallback if the ECB is unreachable.
+- Manual provider for fixings the user enters themselves.
+- Forecast assumptions for periods past the published data (hold last, basis-point shock,
+  fixed rate, explicit curve) plus the shocked variants that drive the sensitivity fan.
+  Published fixings are never overwritten by a projection.
+- `npm run refresh-rates` to refresh the snapshot, and `npm run check:snapshot` to validate
+  the committed file independently of the runtime schema.
+- `docs/rate-providers.md` documenting the interface and how to implement one.
 
 ### Changed
 

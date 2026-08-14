@@ -19,7 +19,9 @@
     "test:coverage": "vitest run --coverage",
     "check:boundaries": "node scripts/check-boundaries.mjs",
     "check:i18n": "node scripts/check-i18n.mjs",
-    "check": "npm run format:check && npm run lint && npm run typecheck && npm run check:boundaries && npm run check:i18n && npm run test && vite build"
+    "check:snapshot": "node scripts/check-snapshot.mjs",
+    "refresh-rates": "node scripts/refresh-rates.mjs",
+    "check": "npm run format:check && npm run lint && npm run typecheck && npm run check:boundaries && npm run check:i18n && npm run check:snapshot && npm run test && vite build"
   },
   "dependencies": {
     "class-variance-authority": "^0.7.1",
@@ -27,7 +29,8 @@
     "lucide-react": "^1.31.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "tailwind-merge": "^3.3.1"
+    "tailwind-merge": "^3.3.1",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.3",

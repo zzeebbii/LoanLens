@@ -50,6 +50,9 @@ jobs:
       - name: i18n consistency
         run: npm run check:i18n
 
+      - name: Rate snapshot
+        run: npm run check:snapshot
+
       - name: Tests
         run: npm run test:coverage
 
