@@ -86,6 +86,31 @@ added too late.
 Each feature owns its components, hooks and local state. Features do not import from each
 other; anything shared moves down into `components/` or `lib/`.
 
+### `app/hooks/` — where async meets pure
+
+Two hooks carry the whole boundary described in ADR 0001:
+
+- **`useRateSeries`** does everything asynchronous — fetching, caching, falling back to the
+  bundled snapshot, applying the forecast — and hands back a plain
+  `(period, index) => number | null`.
+- **`useSchedule`** is a `useMemo`, not a query. `replay` is pure and synchronous, so there is
+  no loading state, no race and no stale result to manage.
+
+Expected engine refusals — a missing rate, a loan that cannot amortise — are _returned_ from
+`useSchedule` rather than thrown. They are outcomes of user input with a control that fixes
+them, not defects; the error boundary is for actual bugs.
+
+### `components/charts/` — the chart layer
+
+Charts never import Recharts directly from a feature, and never write a colour as a hex.
+Colours come from `palette.ts` as `var(--…)` references to the tokens in
+`src/styles/index.css`, which were validated rather than chosen — see
+[ADR 0004](./adr/0004-validated-chart-palette.md).
+
+`ChartFrame` is what makes the accessibility contract structural rather than remembered: it
+renders a legend for any chart with two or more series, offers a table view carrying every
+value a tooltip would show, and names the region.
+
 ## Data flow
 
 ```
@@ -110,12 +135,26 @@ for a fetch to hide inside a calculation, and no calculation whose result depend
 
 ## Deployment
 
-GitHub Pages, from `main`, via GitHub Actions. The build sets `base` to the Pages project path,
-and copies `index.html` to `404.html` so client-side routes survive a hard refresh — Pages has
-no server-side rewrite.
+GitHub Pages, from `main`, via GitHub Actions. The deploy runs the full `npm run check` gate
+before building — a deploy that skips the checks is a deploy that can publish a red build.
+
+Two details the Pages environment forces:
+
+- **`BASE_PATH`** comes from `actions/configure-pages`, so asset URLs and the bundled
+  snapshot URL match wherever Pages actually serves the site.
+- **`index.html` is copied to `404.html`.** Pages has no rewrite rules, so a refresh on
+  `/loans/<id>` would 404; serving the same document as the not-found page hands the URL to
+  the client-side router.
+
+The charts tab is loaded on demand. Recharts is around 420 kB — a third of the bundle — and
+nothing outside that tab needs it, so a first visit does not pay for it.
 
 A Dockerfile builds the same static output and serves it behind nginx, for running the app
-locally without Node.
+without a Node toolchain. `BASE_PATH=/` there, since nginx serves from the root.
+
+The rate snapshot is refreshed by a scheduled workflow on the 3rd of each month. It commits
+only when the observations changed, writes nothing if any tenor fails, and validates the file
+before committing.
 
 ## Decisions
 

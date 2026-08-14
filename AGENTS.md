@@ -69,14 +69,27 @@ ones, and `fast-check` is already installed:
 - the final balance is exactly zero
 - total paid equals principal + total interest + total fees, exactly
 
-### 5. Charts go through the chart layer.
+### 5. Charts go through the chart layer, and the palette is measured.
 
-Never import Recharts directly in a feature. Build on `src/components/charts/`, and take colours
-from the CSS custom properties defined in `src/styles/index.css` (`--chart-capital`,
-`--chart-interest`, …). A hardcoded hex in a chart is a bug: it will be wrong in one of the two
-themes.
+Never import Recharts directly in a feature. Build on `src/components/charts/`, and take
+colours from `palette.ts`, which references the CSS custom properties in
+`src/styles/index.css`. A hardcoded hex in a chart is a bug twice over: it will be wrong in
+one of the two themes, and it is a colour that skipped the validator.
 
-Every chart needs a keyboard-reachable interaction path and a data-table fallback.
+**There are three categorical slots and there is no fourth.** Three is the count that clears
+every separation gate; a fourth puts two confusable hues on screen together. If a chart seems
+to need four series, it is either an ordered scale (use the ordinal ramp) or two charts. Never
+add a hue because it "looks different enough" — run the `dataviz` validator, and record what
+it said. See [ADR 0004](./docs/adr/0004-validated-chart-palette.md).
+
+Every chart needs a legend when it has two or more series, a keyboard-reachable interaction
+path, and a data-table view. `ChartFrame` provides all three; use it rather than reproducing
+them. This is not optional polish — one of the three hues sits below 3:1 on the light surface,
+and this relief is what makes using it acceptable.
+
+Before choosing a chart type, check the form against the data's job. Two documented
+anti-patterns were caught in this codebase already: a two-slice donut (became one labelled bar
+plus a hero figure) and a waterfall for a part-to-whole split (became a stacked bar).
 
 ## Commands
 

@@ -1,0 +1,59 @@
+name: Refresh EURIBOR snapshot
+
+on:
+  schedule:
+    # 06:00 UTC on the 3rd of each month. The ECB publishes the previous month's average in
+    # the first days of the new one, so the 1st is too early.
+    - cron: '0 6 3 * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: refresh-rates
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+
+      - name: Fetch from the ECB Data Portal
+        # Writes nothing unless the observations actually changed, and nothing at all if any
+        # tenor fails — a snapshot missing one series half-works, with some loans falling back
+        # to the live API and silently disagreeing with the rest.
+        run: node scripts/refresh-rates.mjs
+
+      - name: Validate what was written
+        # An independent check on unattended output: ordering, gaps, plausible ranges and
+        # coverage. This runs before the commit so a bad file never reaches the branch.
+        run: node scripts/check-snapshot.mjs
+
+      - name: Commit if anything changed
+        run: |
+          if git diff --quiet -- public/data/euribor.json; then
+            echo "No new observations — nothing to commit."
+            exit 0
+          fi
+
+          latest=$(node -e "
+            const s = require('./public/data/euribor.json').series['12M'].at(-1);
+            process.stdout.write(s.period + ' at ' + s.ratePercent.toFixed(4) + '%');
+          ")
+
+          git config user.name  'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git add public/data/euribor.json
+          git commit -m "chore(rates): refresh EURIBOR snapshot
+
+          12M EURIBOR now runs to $latest.
+
+          Fetched from the ECB Data Portal by scripts/refresh-rates.mjs and
+          validated by scripts/check-snapshot.mjs."
+          git push

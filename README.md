@@ -29,32 +29,49 @@ Early development. See [`CHANGELOG.md`](./CHANGELOG.md) for what exists so far.
 
 ## Running locally
 
-Requires Node 22 or newer.
+Requires Node 24 or newer.
 
 ```bash
 npm install
 npm run dev
 ```
 
-With Docker:
+With Docker instead, if you would rather not install Node:
 
 ```bash
-docker compose up
+docker compose up        # production build behind nginx, on :8080
+docker compose up dev    # Vite dev server with hot reload, on :5173
 ```
 
 ## Development
 
 ```bash
-npm run check        # everything CI runs: format, lint, types, boundaries, i18n, tests, build
-npm run test:watch   # TDD loop
+npm run check          # everything CI runs, in the same order
+npm run test:watch     # TDD loop
+npm run refresh-rates  # pull the latest EURIBOR from the ECB into the bundled snapshot
 ```
+
+`npm run check` is the gate: formatting, lint, types, module boundaries, i18n consistency,
+the rate snapshot, tests with coverage, and the build. CI runs exactly this.
 
 Read [`AGENTS.md`](./AGENTS.md) before contributing — it covers the handful of rules this
 codebase does not bend on, and the reasons behind them.
 
+## Deployment
+
+Pushing to `main` runs the full gate and publishes to GitHub Pages. The build is prefixed
+with the Pages path, and `index.html` is copied to `404.html` so a refresh on a deep link
+reaches the client-side router — Pages has no rewrite rules.
+
+A scheduled workflow refreshes the bundled EURIBOR snapshot on the 3rd of each month, after
+the ECB has published the previous month's average. It commits only when the observations
+actually changed, and validates the file before committing it.
+
 ## Documentation
 
 - [Architecture](./docs/architecture.md) — layers, boundaries, and why they are where they are
+- [Domain model](./docs/domain-model.md) — the engine, and the reasoning behind the parts that are easy to get wrong
+- [Rate providers](./docs/rate-providers.md) — the interface, and how to plug in your own source
 - [Architecture decisions](./docs/adr/) — the reasoning behind the load-bearing choices
 
 ## Data source

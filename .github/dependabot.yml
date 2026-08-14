@@ -1,0 +1,60 @@
+version: 2
+
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    # Grouped, because forty individual PRs a month is a queue nobody reads. Patch and minor
+    # updates land as one PR that CI either passes or does not; majors come separately, since
+    # each needs its changelog read.
+    groups:
+      production:
+        patterns: ['*']
+        dependency-type: production
+        update-types: ['minor', 'patch']
+      development:
+        patterns: ['*']
+        dependency-type: development
+        update-types: ['minor', 'patch']
+      radix:
+        # Radix ships many small packages that move together; a split across them produces
+        # PRs that only make sense merged.
+        patterns: ['@radix-ui/*']
+      tanstack:
+        patterns: ['@tanstack/*']
+    ignore:
+      # oxfmt is pinned exactly on purpose: it is pre-1.0 and its output still changes, so an
+      # automatic bump would reformat the codebase inside a dependency PR. Upgrade it
+      # deliberately, with the reformat in its own commit.
+      - dependency-name: oxfmt
+    commit-message:
+      prefix: chore
+      include: scope
+    labels:
+      - dependencies
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    groups:
+      actions:
+        patterns: ['*']
+    commit-message:
+      prefix: ci
+    labels:
+      - dependencies
+
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    commit-message:
+      prefix: chore
+    labels:
+      - dependencies

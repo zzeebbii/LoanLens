@@ -1,0 +1,32 @@
+# Two ways to run the app without a Node toolchain on the host.
+#
+#   docker compose up          — the production build behind nginx, on :8080
+#   docker compose up dev      — the Vite dev server with hot reload, on :5173
+
+services:
+  app:
+    build:
+      context: .
+      target: serve
+    ports:
+      - '8080:8080'
+    restart: unless-stopped
+
+  dev:
+    image: node:24-alpine
+    working_dir: /app
+    # `--host` is required: without it Vite binds to loopback inside the container and is
+    # unreachable from the host.
+    command: sh -c "npm ci && npm run dev -- --host 0.0.0.0"
+    ports:
+      - '5173:5173'
+    volumes:
+      - .:/app
+      # A named volume for node_modules, so the container's Linux binaries are not
+      # overwritten by whatever the host platform installed.
+      - node_modules:/app/node_modules
+    profiles:
+      - dev
+
+volumes:
+  node_modules:

@@ -93,6 +93,16 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   - Interest month by month as a heatmap, where a rate reset shows as a whole row shifting.
   - Every chart carries a legend, a keyboard-reachable table view and an accessible name.
 - The charts are loaded on demand, so a first visit does not pay for the charting library.
+- GitHub Pages deployment, running the full check gate before publishing, with the Pages base
+  path applied and a `404.html` fallback so deep links survive a refresh.
+- Scheduled monthly refresh of the bundled EURIBOR snapshot, which commits only when the
+  observations changed and validates the file before committing it.
+- Multi-stage Dockerfile serving the same static output behind nginx, with a tight
+  content-security policy allowing exactly one outbound host, plus a Compose file offering
+  either the production build or a hot-reloading dev server.
+- Dependabot for npm, GitHub Actions and Docker, grouped so a month of updates is a handful of
+  reviewable pull requests rather than forty. `oxfmt` is excluded: it is pre-1.0 and a bump
+  reformats the codebase, which belongs in its own commit.
 
 ### Changed
 
