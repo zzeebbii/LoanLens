@@ -5,23 +5,16 @@ import { PencilIcon, Trash2Icon } from 'lucide-react'
 import { lazy, Suspense, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { useDeleteLoan, useLoan } from '@/app/hooks/useLoans'
+import { useLoan } from '@/app/hooks/useLoans'
 import { horizonFor, useLoanRates } from '@/app/hooks/useRateSeries'
 import { useSchedule } from '@/app/hooks/useSchedule'
 import { NotFound } from '@/app/NotFound'
 import { useSettings } from '@/app/providers/SettingsProvider'
 import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { yearMonth } from '@/domain/dates'
+import { DeleteLoanDialog } from '@/features/loan/DeleteLoanDialog'
 import { LoanSummary } from '@/features/loan/LoanSummary'
 import { RatesPanel } from '@/features/rates/RatesPanel'
 import { ScenariosPanel } from '@/features/scenarios/ScenariosPanel'
@@ -63,7 +56,6 @@ export function LoanDetailPage() {
 
   const [confirmingDelete, setConfirmingDelete] = useState(false)
   const { data: loan, isPending } = useLoan(loanId)
-  const { mutateAsync: deleteLoan } = useDeleteLoan()
 
   const rates = useLoanRates({
     loan,
@@ -155,28 +147,13 @@ export function LoanDetailPage() {
         </Tabs>
       )}
 
-      <Dialog open={confirmingDelete} onOpenChange={setConfirmingDelete}>
-        <DialogContent closeLabel={t('common:action.close')}>
-          <DialogHeader>
-            <DialogTitle>{t('common:action.delete')}</DialogTitle>
-            <DialogDescription>{t('loan:form.deleteConfirm')}</DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setConfirmingDelete(false)}>
-              {t('common:action.cancel')}
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={async () => {
-                await deleteLoan(loanId)
-                await navigate({ to: '/' })
-              }}
-            >
-              {t('common:action.delete')}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <DeleteLoanDialog
+        loanId={loanId}
+        loanName={loan.name}
+        open={confirmingDelete}
+        onOpenChange={setConfirmingDelete}
+        onDeleted={() => navigate({ to: '/' })}
+      />
     </div>
   )
 }

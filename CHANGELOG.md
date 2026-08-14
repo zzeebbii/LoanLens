@@ -122,6 +122,9 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Dependabot for npm, GitHub Actions and Docker, grouped so a month of updates is a handful of
   reviewable pull requests rather than forty. `oxfmt` is excluded: it is pre-1.0 and a bump
   reformats the codebase, which belongs in its own commit.
+- Edit and delete on each loan card, so correcting a margin does not cost a navigation each
+  way. Both name the loan they act on, as does the confirmation, because in a list of cards a
+  row of buttons all called "Delete" says nothing about which loan is about to go.
 
 ### Fixed
 
@@ -129,6 +132,15 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   `cursor: pointer` browsers apply to buttons, so nothing in the app looked clickable on
   hover — most visibly the loan page's tabs, which have no other affordance saying they are
   interactive. Fixed once at the base layer rather than per component.
+- Header navigation looked like a button only on its own page. The links were ghost buttons,
+  so they had no visible edge until hovered, and picked up a filled background when their
+  route was active — the same fill used for hover. Both now wear the same outline everywhere,
+  and the current page is marked with `aria-current` as well as a background.
+- Toggle labels sat about 2.5px below their switch whenever help text made the row tall
+  enough to notice. An inline `<label>` in an unstyled block takes that block's line height —
+  1.5 at the root font size, so 24px — rather than its own 20px, and its text is centred in
+  the taller box while the switch is pinned to the top. The toggle rows now come from one
+  `SwitchField` component whose label is a block of matching height.
 - Replaced the native `type="date"` and `type="month"` inputs. They worked, but rendered the
   browser's own widget, which ignores the app's styling entirely — and `type="month"` is
   unimplemented in some browsers, where it degrades to a bare text box.

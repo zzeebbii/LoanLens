@@ -37,16 +37,34 @@ export function AppShell() {
             LoanLens
           </Link>
 
-          <Button asChild variant="ghost" size="sm">
-            <Link to="/" activeProps={{ 'data-active': 'true' }} className="data-active:bg-accent">
+          {/*
+           * Both destinations wear `outline`, so a nav item looks like a control on every
+           * page rather than only on its own. As ghost buttons they were invisible until
+           * hovered and picked up a background when their route was active — which meant the
+           * same control read as a button on one page and as plain text on the next, and the
+           * "you are here" state was indistinguishable from a hover.
+           *
+           * The current page is now said twice over: `aria-current` for a screen reader, and
+           * a filled background on a shape that was already button-shaped.
+           */}
+          <Button asChild variant="outline" size="sm">
+            <Link
+              to="/"
+              activeProps={{ 'data-active': 'true', 'aria-current': 'page' }}
+              className="data-active:bg-accent data-active:text-accent-foreground"
+            >
               {t('nav.portfolio')}
             </Link>
           </Button>
 
           <ThemeToggle />
 
-          <Button asChild variant="ghost" size="icon" aria-label={t('nav.settings')}>
-            <Link to="/settings" activeProps={{ 'data-active': 'true' }}>
+          <Button asChild variant="outline" size="icon" aria-label={t('nav.settings')}>
+            <Link
+              to="/settings"
+              activeProps={{ 'data-active': 'true', 'aria-current': 'page' }}
+              className="data-active:bg-accent data-active:text-accent-foreground"
+            >
               <SettingsIcon aria-hidden />
             </Link>
           </Button>

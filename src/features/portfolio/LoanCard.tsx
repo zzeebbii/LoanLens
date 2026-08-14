@@ -1,8 +1,8 @@
 import type { Loan } from '@/domain/loan'
 
 import { Link } from '@tanstack/react-router'
-import { ArrowRightIcon } from 'lucide-react'
-import { useMemo } from 'react'
+import { ArrowRightIcon, PencilIcon, Trash2Icon } from 'lucide-react'
+import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { useCurrentPeriod } from '@/app/hooks/useCurrentPeriod'
@@ -17,6 +17,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { progressToDate } from '@/domain/analytics'
+import { DeleteLoanDialog } from '@/features/loan/DeleteLoanDialog'
 import { formatPercentChange } from '@/i18n/format'
 
 /**
@@ -30,6 +31,7 @@ export function LoanCard({ loan }: { readonly loan: Loan }) {
   const locale = useLocale()
   const { settings } = useSettings()
   const asOf = useCurrentPeriod()
+  const [confirmingDelete, setConfirmingDelete] = useState(false)
 
   const rates = useLoanRates({
     loan,
@@ -118,14 +120,59 @@ export function LoanCard({ loan }: { readonly loan: Loan }) {
         )}
       </CardContent>
 
-      <CardFooter>
-        <Button asChild variant="outline" size="sm" className="ml-auto">
+      {/*
+       * Edit and delete are here as well as on the loan's own page: correcting a typo in a
+       * margin should not cost two navigations. They are icons, and secondary to opening the
+       * loan, because that is what most visits to this card are for.
+       *
+       * Every label names the loan. In a list of cards, five buttons all called "Edit" tell a
+       * screen-reader user nothing about which loan they are on — and the delete is
+       * irreversible.
+       */}
+      <CardFooter className="gap-1">
+        <Button
+          asChild
+          variant="ghost"
+          size="icon"
+          aria-label={t('loan:action.editNamed', { name: loan.name })}
+        >
+          <Link to="/loans/$loanId/edit" params={{ loanId: loan.id }}>
+            <PencilIcon aria-hidden />
+          </Link>
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label={t('loan:action.deleteNamed', { name: loan.name })}
+          onClick={() => setConfirmingDelete(true)}
+        >
+          <Trash2Icon aria-hidden />
+        </Button>
+
+        {/*
+         * The accessible name leads with the visible word so speech input still matches it,
+         * then names the loan — otherwise a screen reader hears "Loan" five times over.
+         */}
+        <Button
+          asChild
+          variant="outline"
+          size="sm"
+          className="ml-auto"
+          aria-label={t('loan:action.openNamed', { name: loan.name })}
+        >
           <Link to="/loans/$loanId" params={{ loanId: loan.id }}>
             {t('loan:title')}
             <ArrowRightIcon aria-hidden />
           </Link>
         </Button>
       </CardFooter>
+
+      <DeleteLoanDialog
+        loanId={loan.id}
+        loanName={loan.name}
+        open={confirmingDelete}
+        onOpenChange={setConfirmingDelete}
+      />
     </Card>
   )
 }
