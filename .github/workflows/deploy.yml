@@ -34,14 +34,13 @@ jobs:
       - name: Verify
         run: npm run check
 
+      # Requires Pages to be switched on for the repository first, under
+      # Settings -> Pages -> Source: "GitHub Actions". The workflow cannot do it: creating a
+      # Pages site needs repository-administration rights, which `GITHUB_TOKEN` does not have
+      # however its permissions are declared, and `enablement: true` fails with "Resource not
+      # accessible by integration". Until it is on, this step fails with a bare "Not Found".
       - uses: actions/configure-pages@v6
         id: pages
-        with:
-          # Turns Pages on for the repository if it is not already, rather than failing the
-          # deploy with a bare "Not Found" until someone visits Settings. The workflow already
-          # holds `pages: write`, so this needs no extra permission and is a no-op once the
-          # site exists.
-          enablement: true
 
       - name: Build
         # `base_path` comes from configure-pages, so the asset URLs match wherever Pages
