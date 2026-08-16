@@ -89,6 +89,28 @@ export type LoanEvent =
       readonly until: YearMonth | null
     }
   /**
+   * Forces the instalment, ignoring what the annuity formula would produce.
+   *
+   * A "variable annuity" is not recomputed continuously — the lender strikes it once, at
+   * signing or at a reset, and then holds it until the next reset. So the payment on a
+   * statement routinely reflects a rate that no longer applies, and cannot be derived from
+   * the rate that does. A real case: a loan whose contract fixed the annuity at 897.42 when
+   * the rate was 3.63%, drawn down two months later at 3.976%, where the lender charged
+   * 901.37 rather than the 918.61 that rate and term imply. Nothing about the loan is
+   * mis-entered; the payment is simply an input, not an output.
+   *
+   * Without this the difference lands entirely in capital — 17 euro a month against that
+   * loan, which is a thousand euro of phantom repayment inside four years.
+   */
+  | {
+      readonly kind: 'INSTALMENT_OVERRIDE'
+      readonly from: YearMonth
+      /** `null` holds it until something else resizes the payment, e.g. a rate reset. */
+      readonly until: YearMonth | null
+      /** Capital plus interest, before fees — the same basis as `scheduledInstalment`. */
+      readonly amount: Money
+    }
+  /**
    * Pins the balance to a figure taken from a real statement.
    *
    * The model will drift from a lender's own numbers wherever a rounding or day-count
@@ -199,6 +221,25 @@ export function rateOverrideFor(period: YearMonth, events: readonly LoanEvent[])
   for (const event of events) {
     if (event.kind === 'RATE_OVERRIDE' && periodInRange(period, event.from, event.until)) {
       override = event.annualRate
+    }
+  }
+  return override
+}
+
+/**
+ * The instalment an event forces for `period`, if any.
+ *
+ * Last writer wins, like `rateOverrideFor`, so a scenario laid over a loan's own history can
+ * correct an earlier correction without the earlier one having to be edited out.
+ */
+export function instalmentOverrideFor(
+  period: YearMonth,
+  events: readonly LoanEvent[],
+): Money | null {
+  let override: Money | null = null
+  for (const event of events) {
+    if (event.kind === 'INSTALMENT_OVERRIDE' && periodInRange(period, event.from, event.until)) {
+      override = event.amount
     }
   }
   return override

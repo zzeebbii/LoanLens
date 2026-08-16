@@ -25,7 +25,8 @@
     "BALANCE_CORRECTED": "Balance corrected",
     "FINAL_PAYMENT": "Final instalment",
     "BEYOND_ORIGINAL_TERM": "Past the original term",
-    "RATE_CAPPED": "Rate cap applied"
+    "RATE_CAPPED": "Rate cap applied",
+    "INSTALMENT_OVERRIDDEN": "Instalment taken from a statement"
   },
   "note": {
     "finalAdjustment": "The last instalment settles the few cents left over by rounding, so the schedule runs one month past the term.",

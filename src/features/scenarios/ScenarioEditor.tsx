@@ -35,7 +35,12 @@ import { EXTRA_PAYMENT_EFFECTS } from '@/domain/scenario'
  * than what-ifs about the future, and mixing the two in one editor would muddle both. They
  * are better placed on the schedule rows they correct.
  */
-type DraftKind = 'RECURRING_EXTRA' | 'EXTRA_PAYMENT' | 'PAYMENT_HOLIDAY' | 'RATE_CAP'
+type DraftKind =
+  | 'RECURRING_EXTRA'
+  | 'EXTRA_PAYMENT'
+  | 'PAYMENT_HOLIDAY'
+  | 'RATE_CAP'
+  | 'INSTALMENT_OVERRIDE'
 
 /**
  * An event plus a client-side id.
@@ -98,6 +103,18 @@ export function ScenarioEditor({
         premiumBps: premium * 100,
         from: fromPeriod,
         until: untilPeriod,
+      })
+      return
+    }
+
+    if (kind === 'INSTALMENT_OVERRIDE') {
+      // Zero would be a payment holiday, which has its own event and its own interest rules.
+      if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) return
+      add({
+        kind: 'INSTALMENT_OVERRIDE',
+        from: fromPeriod,
+        until: untilPeriod,
+        amount: fromMajorUnits(parsedAmount),
       })
       return
     }
@@ -167,19 +184,31 @@ export function ScenarioEditor({
                     {t('scenarios:event.PAYMENT_HOLIDAY')}
                   </SelectItem>
                   <SelectItem value="RATE_CAP">{t('scenarios:event.RATE_CAP')}</SelectItem>
+                  <SelectItem value="INSTALMENT_OVERRIDE">
+                    {t('scenarios:event.INSTALMENT_OVERRIDE')}
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             {kind !== 'PAYMENT_HOLIDAY' && kind !== 'RATE_CAP' && (
               <div className="space-y-1">
-                <Label htmlFor="event-amount">{t('scenarios:field.amount')}</Label>
+                <Label htmlFor="event-amount">
+                  {kind === 'INSTALMENT_OVERRIDE'
+                    ? t('scenarios:field.instalmentAmount')
+                    : t('scenarios:field.amount')}
+                </Label>
                 <Input
                   id="event-amount"
                   inputMode="decimal"
                   value={amount}
                   onChange={(event) => setAmount(event.target.value)}
                 />
+                {kind === 'INSTALMENT_OVERRIDE' && (
+                  <p className="text-xs text-muted-foreground">
+                    {t('scenarios:field.instalmentAmountHelp')}
+                  </p>
+                )}
               </div>
             )}
 
@@ -257,7 +286,12 @@ export function ScenarioEditor({
               </div>
             )}
 
-            {kind !== 'PAYMENT_HOLIDAY' && kind !== 'RATE_CAP' && (
+            {/*
+             * Only overpayments have an effect to choose. Forcing the instalment is not a
+             * decision about what to do with spare money — it is a correction to what the
+             * lender charged, and shortening the term is not on offer.
+             */}
+            {(kind === 'RECURRING_EXTRA' || kind === 'EXTRA_PAYMENT') && (
               <div className="space-y-1 sm:col-span-2">
                 <Label htmlFor="event-effect">{t('scenarios:field.effect')}</Label>
                 <Select

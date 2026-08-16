@@ -74,6 +74,19 @@ const EVERY_EVENT: readonly LoanEvent[] = [
     until: yearMonth(2031, 9),
   },
   { kind: 'RATE_CAP', ceiling: 0.025, premiumBps: 0, from: yearMonth(2032, 1), until: null },
+  {
+    kind: 'INSTALMENT_OVERRIDE',
+    from: yearMonth(2022, 11),
+    until: yearMonth(2023, 8),
+    amount: fromMajorUnits(901.37),
+  },
+  {
+    // Open-ended: held until something else resizes the payment.
+    kind: 'INSTALMENT_OVERRIDE',
+    from: yearMonth(2024, 1),
+    until: null,
+    amount: fromMajorUnits(950),
+  },
 ]
 
 describe('event mapping', () => {
@@ -89,6 +102,7 @@ describe('event mapping', () => {
     expect([...covered].toSorted()).toEqual([
       'BALANCE_CORRECTION',
       'EXTRA_PAYMENT',
+      'INSTALMENT_OVERRIDE',
       'PAYMENT_HOLIDAY',
       'RATE_CAP',
       'RATE_OVERRIDE',

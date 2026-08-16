@@ -132,6 +132,14 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   `cursor: pointer` browsers apply to buttons, so nothing in the app looked clickable on
   hover — most visibly the loan page's tabs, which have no other affordance saying they are
   interactive. Fixed once at the base layer rather than per component.
+- Instalment overrides (`INSTALMENT_OVERRIDE`), for taking the payment from a statement rather
+  than deriving it. A "variable annuity" is struck once — at signing or at a reset — and then
+  held, so the payment on a statement routinely reflects a rate that no longer applies and
+  cannot be recovered from the rate that does. A real case: a contract fixing the annuity at
+  897.42 when the rate was 3.63%, drawn down two months later at 3.976%, where the lender
+  charged 901.37 rather than the 918.61 that rate and term imply. Nothing is mis-entered; the
+  payment is an input, not an output. Left derived, the difference lands entirely in capital —
+  17 euro a month, a thousand euro of phantom repayment inside four years.
 - The first instalment silently understated its interest under the default day count. The gap
   between drawdown and the first payment is the one period in a schedule that is almost never
   a whole month, and `MONTHLY_NOMINAL` counts whole months and discards the remainder — right
