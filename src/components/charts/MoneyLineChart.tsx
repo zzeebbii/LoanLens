@@ -147,7 +147,7 @@ export function MoneyLineChart({
                 return value === undefined ? (
                   '—'
                 ) : (
-                  <MoneyText amount={value} currency={currency} withoutSymbol whole />
+                  <MoneyText amount={value} currency={currency} whole />
                 )
               },
             })),

@@ -87,23 +87,17 @@ export function CapitalInterestArea({
             {
               header: t('capitalVsInterest.interest'),
               align: 'right',
-              cell: (datum) => (
-                <Money amount={datum.exact.interest} currency={loan.currency} withoutSymbol />
-              ),
+              cell: (datum) => <Money amount={datum.exact.interest} currency={loan.currency} />,
             },
             {
               header: t('capitalVsInterest.capital'),
               align: 'right',
-              cell: (datum) => (
-                <Money amount={datum.exact.capital} currency={loan.currency} withoutSymbol />
-              ),
+              cell: (datum) => <Money amount={datum.exact.capital} currency={loan.currency} />,
             },
             {
               header: t('capitalVsInterest.fees'),
               align: 'right',
-              cell: (datum) => (
-                <Money amount={datum.exact.fees} currency={loan.currency} withoutSymbol />
-              ),
+              cell: (datum) => <Money amount={datum.exact.fees} currency={loan.currency} />,
             },
           ]}
         />

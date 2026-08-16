@@ -75,13 +75,21 @@ export function SchedulePanel({
         <AlertDescription>{t('schedule:note.reconstructed')}</AlertDescription>
       </Alert>
 
+      {/*
+       * The year view comes first. It is the one people read — twenty-five rows against three
+       * hundred — and underneath a virtualised table of every instalment it was effectively
+       * invisible. The detail stays below for when a specific month is in question.
+       *
+       * It always covers the whole loan, not the filter above, because its job is the shape
+       * of the thing end to end.
+       */}
+      <YearlyTable loan={loan} rows={rows} />
+
       <Card className="py-0">
         <CardContent className="px-0">
           <ScheduleTable loan={loan} rows={filtered} asOf={asOf} />
         </CardContent>
       </Card>
-
-      <YearlyTable loan={loan} rows={rows} />
 
       <p className="text-xs text-muted-foreground">{t('schedule:note.finalAdjustment')}</p>
     </div>

@@ -132,6 +132,22 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   `cursor: pointer` browsers apply to buttons, so nothing in the app looked clickable on
   hover — most visibly the loan page's tabs, which have no other affordance saying they are
   interactive. Fixed once at the base layer rather than per component.
+- A totals row on the payment schedule, summing interest, capital and the amount paid across
+  the rows on screen — so a filtered view totals what it is showing rather than the whole loan.
+  Closing balances are deliberately not summed: a balance is a position, not a flow, and
+  adding three hundred of them would put a meaningless figure beside three real ones.
+- Amounts in tables and report views now carry the loan's currency. The user chooses it, and a
+  bare column of numbers leaves the unit to be inferred.
+- The yearly breakdown moved above the instalment-by-instalment table. It was already there and
+  already totalled, but underneath a virtualised table of three hundred rows nobody found it.
+- Instalment overrides (`INSTALMENT_OVERRIDE`), for taking the payment from a statement rather
+  than deriving it. A "variable annuity" is struck once — at signing or at a reset — and then
+  held, so the payment on a statement routinely reflects a rate that no longer applies and
+  cannot be recovered from the rate that does. A real case: a contract fixing the annuity at
+  897.42 when the rate was 3.63%, drawn down two months later at 3.976%, where the lender
+  charged 901.37 rather than the 918.61 that rate and term imply. Nothing is mis-entered; the
+  payment is an input, not an output. Left derived, the difference lands entirely in capital —
+  17 euro a month, a thousand euro of phantom repayment inside four years.
 - The first instalment silently understated its interest under the default day count. The gap
   between drawdown and the first payment is the one period in a schedule that is almost never
   a whole month, and `MONTHLY_NOMINAL` counts whole months and discards the remainder — right

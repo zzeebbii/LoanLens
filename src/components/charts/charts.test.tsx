@@ -59,8 +59,9 @@ describe('every chart carries its accessibility contract', () => {
     await user.click(screen.getByRole('button', { name: /Show as a table/ }))
 
     const table = await screen.findByRole('table')
-    // 708.33 is the first month's interest in the reference schedule.
-    expect(within(table).getByText('708.33')).toBeDefined()
+    // 708.33 is the first month's interest in the reference schedule. Matched loosely on the
+    // number because the cell carries the loan's currency alongside it.
+    expect(within(table).getByText(/708[.,]33/)).toBeDefined()
   })
 
   it('keeps the table collapsed until asked for, so it costs nothing', async () => {

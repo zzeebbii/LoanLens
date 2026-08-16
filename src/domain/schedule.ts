@@ -19,6 +19,7 @@ import {
   holidayFor,
   periodInRange,
   rateCapsFor,
+  instalmentOverrideFor,
   rateOverrideFor,
 } from '@/domain/scenario'
 
@@ -44,6 +45,7 @@ export const PAYMENT_FLAGS = [
   'BALANCE_CORRECTED',
   'FINAL_PAYMENT',
   'BEYOND_ORIGINAL_TERM',
+  'INSTALMENT_OVERRIDDEN',
 ] as const
 
 export type PaymentFlag = (typeof PAYMENT_FLAGS)[number]
@@ -278,6 +280,7 @@ export function replay({
   let currentPremiumRate = 0
   let currentlyCapped = false
   let overrideWasActive = false
+  let instalmentForcedLastPeriod = false
   let holidayWasActive = false
   // Identifies the cap arrangement, so a cap starting, ending or changing is detectable.
   let previousCapSignature: string | null = null
@@ -344,7 +347,29 @@ export function replay({
     // keeps an annuity loan from drifting into negative amortisation afterwards.
     const holidayJustEnded = holiday === null && holidayWasActive
 
-    if (instalment === null || rateChanged || holidayJustEnded) {
+    /*
+     * A payment the user has read off a statement wins over the one the formula produces.
+     *
+     * Checked before the recalculation rather than after, so a rate reset inside an
+     * override's range does not quietly resize a payment the lender is demonstrably still
+     * charging. When the override lapses the next period recomputes from the balance it
+     * actually left behind, which is the same thing a lender does at its next reset.
+     */
+    const forcedInstalment = instalmentOverrideFor(period, events)
+
+    if (forcedInstalment !== null) {
+      if (instalment !== forcedInstalment) flags.push('INSTALMENT_OVERRIDDEN')
+      instalment = forcedInstalment
+      instalmentForcedLastPeriod = true
+    } else if (
+      instalment === null ||
+      rateChanged ||
+      holidayJustEnded ||
+      // The period an override lapses. The held payment was never sized to clear this
+      // balance over what is left of the term, so carrying it on would amortise wrongly for
+      // the rest of the loan rather than for the months the lender actually held it.
+      instalmentForcedLastPeriod
+    ) {
       instalment = strategy.instalment({
         balance,
         periodicRate: currentRate / MONTHS_PER_YEAR,
@@ -352,6 +377,7 @@ export function replay({
         rounding: loan.rounding,
       })
       if (index > 1) flags.push('PAYMENT_RECALCULATED')
+      instalmentForcedLastPeriod = false
     }
 
     // Captured before the end-of-period resize below, so the row reports the

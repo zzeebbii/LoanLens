@@ -120,6 +120,12 @@ const loanEventSchema = z.discriminatedUnion('kind', [
     annualRate: rateSchema,
   }),
   z.object({
+    kind: z.literal('INSTALMENT_OVERRIDE'),
+    from: yearMonthSchema,
+    until: yearMonthSchema.nullable(),
+    amount: moneySchema,
+  }),
+  z.object({
     kind: z.literal('RATE_CAP'),
     ceiling: rateSchema,
     premiumBps: z.number().finite().min(0),
@@ -240,6 +246,9 @@ export function toStoredEvent(event: LoanEvent): StoredLoanEvent {
     case 'BALANCE_CORRECTION': {
       return { ...event, closingBalance: toStoredMoney(event.closingBalance) }
     }
+    case 'INSTALMENT_OVERRIDE': {
+      return { ...event, amount: toStoredMoney(event.amount) }
+    }
     case 'PAYMENT_HOLIDAY':
     case 'RATE_OVERRIDE':
     case 'RATE_CAP': {
@@ -275,6 +284,14 @@ export function fromStoredEvent(stored: StoredLoanEvent): LoanEvent {
         ...stored,
         from: asYearMonth(stored.from),
         until: stored.until === null ? null : asYearMonth(stored.until),
+      }
+    }
+    case 'INSTALMENT_OVERRIDE': {
+      return {
+        ...stored,
+        from: asYearMonth(stored.from),
+        until: stored.until === null ? null : asYearMonth(stored.until),
+        amount: fromStoredMoney(stored.amount),
       }
     }
     case 'BALANCE_CORRECTION': {

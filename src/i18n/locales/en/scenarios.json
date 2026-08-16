@@ -13,7 +13,9 @@
     "effect": "What it changes",
     "untilOpenOption": "The rest of the loan",
     "capCeiling": "Cap the reference rate at",
-    "capPremium": "Fee for the cap"
+    "capPremium": "Fee for the cap",
+    "instalmentAmount": "Instalment from the statement",
+    "instalmentAmountHelp": "Capital plus interest, excluding any servicing fee. Use this when the lender charges a payment that its own rate and term do not imply — a variable annuity is struck at a reset and then held, so it often reflects a rate that has since moved."
   },
   "effect": {
     "SHORTEN_TERM": "Finish sooner",
@@ -29,7 +31,8 @@
     "BALANCE_CORRECTION": "Correct the balance",
     "addEvent": "Add a change",
     "empty": "No changes yet. Add one to see the effect.",
-    "RATE_CAP": "Interest rate cap"
+    "RATE_CAP": "Interest rate cap",
+    "INSTALMENT_OVERRIDE": "Set the instalment"
   },
   "holiday": {
     "interest": "During the holiday",
