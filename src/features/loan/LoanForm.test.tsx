@@ -263,4 +263,57 @@ describe('LoanForm', () => {
 
     expect(onSubmit.mock.calls[0]![0]).toEqual(original)
   })
+
+  describe('the first-period warning', () => {
+    /**
+     * Moves the drawdown off the payment day, which is what creates a stub.
+     *
+     * The blank draft draws down on the same day of the month that instalments fall on, so
+     * only the drawdown has to move — and it is a plain text field, unlike the first-instalment
+     * month, which is a pair of selects.
+     */
+    async function drawnOn(user: ReturnType<typeof userEvent.setup>, drawdown: string) {
+      await user.clear(screen.getByLabelText('Drawdown date'))
+      await user.type(screen.getByLabelText('Drawdown date'), drawdown)
+    }
+
+    it('warns when a nominal day count would not charge the drawdown gap', async () => {
+      const user = userEvent.setup()
+      await renderForm({})
+
+      // Drawn on the 1st against instalments on the 15th: a fortnight the convention counts
+      // as no month at all. The same shape as a real drawdown on 27 September against a first
+      // payment on 20 November, which loses 24 days — see the domain test for that case.
+      await drawnOn(user, '2026-08-01')
+
+      expect(await screen.findByText(/14 days/)).toBeDefined()
+    })
+
+    it('says nothing when the drawdown lands a whole month before the first payment', async () => {
+      const user = userEvent.setup()
+      await renderForm({})
+
+      await drawnOn(user, '2026-07-15')
+
+      expect(screen.queryByText(/never charged/)).toBeNull()
+    })
+
+    it('says nothing once a day count that counts real days is chosen', async () => {
+      const user = userEvent.setup()
+      await renderForm({})
+      await drawnOn(user, '2026-08-01')
+      expect(await screen.findByText(/14 days/)).toBeDefined()
+
+      await user.click(screen.getByLabelText('Interest calculation'))
+      await user.click(await screen.findByRole('option', { name: /Actual days \/ 360/ }))
+
+      expect(screen.queryByText(/14 days/)).toBeNull()
+    })
+
+    it('does not greet a new loan with a warning', async () => {
+      await renderForm({})
+
+      expect(screen.queryByText(/never charged/)).toBeNull()
+    })
+  })
 })
