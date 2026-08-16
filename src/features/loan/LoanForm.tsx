@@ -10,6 +10,7 @@ import { useTranslation } from 'react-i18next'
 import { useRateProviders } from '@/app/providers/RateProviderContext'
 import { DateField } from '@/components/fields/DateField'
 import { MonthField } from '@/components/fields/MonthField'
+import { SwitchField } from '@/components/fields/SwitchField'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -313,21 +314,14 @@ export function LoanForm({ defaultValues, submitLabel, onSubmit, onCancel }: Loa
                 control={form.control}
                 name="floorReference"
                 render={({ field }) => (
-                  <div className="flex items-start gap-3 sm:col-span-2">
-                    <Switch
-                      id="floorReference"
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                    <div className="space-y-1">
-                      <label htmlFor="floorReference" className="text-sm font-medium">
-                        {t('loan:rate.referenceFloor')}
-                      </label>
-                      <p className="text-xs text-muted-foreground">
-                        {t('loan:rate.referenceFloorHelp')}
-                      </p>
-                    </div>
-                  </div>
+                  <SwitchField
+                    id="floorReference"
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                    label={t('loan:rate.referenceFloor')}
+                    description={t('loan:rate.referenceFloorHelp')}
+                    className="sm:col-span-2"
+                  />
                 )}
               />
 
@@ -340,15 +334,13 @@ export function LoanForm({ defaultValues, submitLabel, onSubmit, onCancel }: Loa
                 name="hasCap"
                 render={({ field }) => (
                   <div className="space-y-3 rounded-lg border p-4 sm:col-span-2">
-                    <div className="flex items-start gap-3">
-                      <Switch id="hasCap" checked={field.value} onCheckedChange={field.onChange} />
-                      <div className="space-y-1">
-                        <label htmlFor="hasCap" className="text-sm font-medium">
-                          {t('loan:rate.hasCap')}
-                        </label>
-                        <p className="text-xs text-muted-foreground">{t('loan:rate.capHelp')}</p>
-                      </div>
-                    </div>
+                    <SwitchField
+                      id="hasCap"
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                      label={t('loan:rate.hasCap')}
+                      description={t('loan:rate.capHelp')}
+                    />
 
                     {field.value && (
                       <div className="grid gap-5 sm:grid-cols-2">
@@ -461,12 +453,12 @@ export function LoanForm({ defaultValues, submitLabel, onSubmit, onCancel }: Loa
                 control={form.control}
                 name="roundRate"
                 render={({ field }) => (
-                  <div className="flex items-start gap-3">
-                    <Switch id="roundRate" checked={field.value} onCheckedChange={field.onChange} />
-                    <label htmlFor="roundRate" className="text-sm font-medium">
-                      {t('loan:rate.rateRounding')}
-                    </label>
-                  </div>
+                  <SwitchField
+                    id="roundRate"
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                    label={t('loan:rate.rateRounding')}
+                  />
                 )}
               />
 

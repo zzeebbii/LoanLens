@@ -33,7 +33,9 @@ export function ThemeToggle() {
 
   return (
     <Button
-      variant="ghost"
+      // `outline`, like the nav items either side of it: three controls in a row that do not
+      // agree on whether they have an edge read as a rendering glitch, not as a hierarchy.
+      variant="outline"
       size="icon"
       onClick={() => void update({ theme: next })}
       aria-label={`${t('theme.label')}: ${t(`theme.${current}`)}`}

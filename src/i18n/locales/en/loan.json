@@ -87,7 +87,7 @@
     "editTitle": "Edit loan",
     "createSubmit": "Add loan",
     "editSubmit": "Save changes",
-    "deleteConfirm": "Delete this loan and all its scenarios? This cannot be undone."
+    "deleteConfirm": "Delete {{name}} and all its scenarios? This cannot be undone."
   },
   "validation": {
     "nameRequired": "Give the loan a name",
@@ -105,5 +105,10 @@
     "capPremiumRange": "Enter a fee between 0 and 5%",
     "capBelowFloor": "A cap below the floor could never take effect",
     "capEndsBeforeStart": "The cap cannot end before it starts"
+  },
+  "action": {
+    "editNamed": "Edit {{name}}",
+    "deleteNamed": "Delete {{name}}",
+    "openNamed": "Loan: {{name}}"
   }
 }

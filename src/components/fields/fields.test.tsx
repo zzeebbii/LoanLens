@@ -7,6 +7,7 @@ import { beforeAll, describe, expect, it, vi } from 'vitest'
 import { renderWithProviders } from '@/app/testing/renderApp'
 import { DateField } from '@/components/fields/DateField'
 import { MonthField } from '@/components/fields/MonthField'
+import { SwitchField } from '@/components/fields/SwitchField'
 
 /**
  * These fields replaced `type="date"` and `type="month"`.
@@ -152,5 +153,62 @@ describe('MonthField', () => {
 
     expect(screen.getByRole('combobox', { name: 'Month' })).toBeDefined()
     expect(screen.getByRole('combobox', { name: 'Year' })).toBeDefined()
+  })
+})
+
+/**
+ * The toggle rows.
+ *
+ * jsdom has no layout, so the alignment that prompted this component cannot be asserted here —
+ * only the class contract that produces it, plus the behaviour that would break if someone
+ * "simplified" the markup and dropped the `htmlFor`/`id` pairing along with it.
+ */
+describe('SwitchField', () => {
+  it('lets the label operate the switch, not just sit beside it', async () => {
+    const user = userEvent.setup()
+    const onCheckedChange = vi.fn<(checked: boolean) => void>()
+
+    await renderWithProviders(
+      <SwitchField
+        id="cap"
+        checked={false}
+        onCheckedChange={onCheckedChange}
+        label="This loan has a rate cap"
+        description="The bank charges for it."
+      />,
+    )
+
+    await user.click(screen.getByText('This loan has a rate cap'))
+
+    expect(onCheckedChange).toHaveBeenCalledWith(true)
+  })
+
+  it('gives the label a box the same height as the switch', async () => {
+    await renderWithProviders(
+      <SwitchField id="cap" checked={false} onCheckedChange={vi.fn()} label="Capped" />,
+    )
+
+    // The bug this replaced: an inline label inherits the wrapping block's 1.5 line height
+    // rather than its own, so its text sits a couple of pixels below a top-aligned switch.
+    // `block` plus an explicit `leading-5` is what makes the two boxes agree.
+    const label = screen.getByText('Capped')
+    expect(label.className).toContain('block')
+    expect(label.className).toContain('leading-5')
+  })
+
+  it('omits the description entirely when there is none, rather than leaving a gap', async () => {
+    const { container } = await renderWithProviders(
+      <SwitchField id="cap" checked={false} onCheckedChange={vi.fn()} label="Capped" />,
+    )
+
+    expect(container.querySelector('p')).toBeNull()
+  })
+
+  it('reflects the checked state, so the control is not merely decorative', async () => {
+    await renderWithProviders(
+      <SwitchField id="cap" checked onCheckedChange={vi.fn()} label="Capped" />,
+    )
+
+    expect(screen.getByRole('switch').getAttribute('aria-checked')).toBe('true')
   })
 })
