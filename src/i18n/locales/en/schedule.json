@@ -13,7 +13,9 @@
     "capital": "Capital",
     "fees": "Fees",
     "totalPaid": "Paid",
-    "closingBalance": "Balance"
+    "closingBalance": "Balance",
+    "total": "Total of {{count}} instalment",
+    "total_other": "Total of {{count}} instalments"
   },
   "flag": {
     "RATE_RESET": "Rate reset",

@@ -60,22 +60,22 @@ export function YearlyTable({
               <TableRow key={year.year}>
                 <TableCell className="tabular font-medium">{year.year}</TableCell>
                 <TableCell className="text-right">
-                  <Money amount={year.interest} currency={loan.currency} withoutSymbol />
+                  <Money amount={year.interest} currency={loan.currency} />
                 </TableCell>
                 <TableCell className="text-right">
-                  <Money amount={year.capital} currency={loan.currency} withoutSymbol />
+                  <Money amount={year.capital} currency={loan.currency} />
                 </TableCell>
                 <TableCell className="hidden text-right sm:table-cell">
-                  <Money amount={year.fees} currency={loan.currency} withoutSymbol />
+                  <Money amount={year.fees} currency={loan.currency} />
                 </TableCell>
                 <TableCell className="text-right font-medium">
-                  <Money amount={year.totalPaid} currency={loan.currency} withoutSymbol />
+                  <Money amount={year.totalPaid} currency={loan.currency} />
                 </TableCell>
                 <TableCell className="hidden text-right md:table-cell">
                   <Money
                     amount={year.closingBalance}
                     currency={loan.currency}
-                    withoutSymbol
+
                     whole
                   />
                 </TableCell>
@@ -86,16 +86,16 @@ export function YearlyTable({
             <TableRow>
               <TableCell>{t('schedule:column.totalPaid')}</TableCell>
               <TableCell className="text-right">
-                <Money amount={summary.interest} currency={loan.currency} withoutSymbol />
+                <Money amount={summary.interest} currency={loan.currency} />
               </TableCell>
               <TableCell className="text-right">
-                <Money amount={summary.principal} currency={loan.currency} withoutSymbol />
+                <Money amount={summary.principal} currency={loan.currency} />
               </TableCell>
               <TableCell className="hidden text-right sm:table-cell">
-                <Money amount={summary.fees} currency={loan.currency} withoutSymbol />
+                <Money amount={summary.fees} currency={loan.currency} />
               </TableCell>
               <TableCell className="text-right">
-                <Money amount={summary.totalPaid} currency={loan.currency} withoutSymbol />
+                <Money amount={summary.totalPaid} currency={loan.currency} />
               </TableCell>
               <TableCell className="hidden md:table-cell" />
             </TableRow>

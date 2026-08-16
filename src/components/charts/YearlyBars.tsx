@@ -72,21 +72,17 @@ export function YearlyBars({
             {
               header: t('capitalVsInterest.interest'),
               align: 'right',
-              cell: (year) => (
-                <Money amount={year.interest} currency={loan.currency} withoutSymbol />
-              ),
+              cell: (year) => <Money amount={year.interest} currency={loan.currency} />,
             },
             {
               header: t('capitalVsInterest.capital'),
               align: 'right',
-              cell: (year) => (
-                <Money amount={year.capital} currency={loan.currency} withoutSymbol />
-              ),
+              cell: (year) => <Money amount={year.capital} currency={loan.currency} />,
             },
             {
               header: t('capitalVsInterest.fees'),
               align: 'right',
-              cell: (year) => <Money amount={year.fees} currency={loan.currency} withoutSymbol />,
+              cell: (year) => <Money amount={year.fees} currency={loan.currency} />,
             },
           ]}
         />

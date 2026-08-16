@@ -147,7 +147,7 @@ export function SensitivityBars({
                 variant.instalment === null ? (
                   '—'
                 ) : (
-                  <MoneyText amount={variant.instalment} currency={loan.currency} withoutSymbol />
+                  <MoneyText amount={variant.instalment} currency={loan.currency} />
                 ),
             },
             {
@@ -160,7 +160,7 @@ export function SensitivityBars({
                   <MoneyText
                     amount={variant.extraPerMonth}
                     currency={loan.currency}
-                    withoutSymbol
+
                     signed
                   />
                 ),
@@ -172,11 +172,7 @@ export function SensitivityBars({
                 variant.totalInterest === null ? (
                   '—'
                 ) : (
-                  <MoneyText
-                    amount={variant.totalInterest}
-                    currency={loan.currency}
-                    withoutSymbol
-                  />
+                  <MoneyText amount={variant.totalInterest} currency={loan.currency} />
                 ),
             },
           ]}
