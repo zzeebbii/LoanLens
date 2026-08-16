@@ -132,6 +132,14 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   `cursor: pointer` browsers apply to buttons, so nothing in the app looked clickable on
   hover — most visibly the loan page's tabs, which have no other affordance saying they are
   interactive. Fixed once at the base layer rather than per component.
+- The first instalment silently understated its interest under the default day count. The gap
+  between drawdown and the first payment is the one period in a schedule that is almost never
+  a whole month, and `MONTHLY_NOMINAL` counts whole months and discards the remainder — right
+  for every other period, wrong for this one. A real case: drawn down 27 September against a
+  first payment on 20 November is 54 days, charged as 30, dropping some €330 of interest on a
+  €125,000 balance. The engine was accruing from the drawdown date correctly; the convention
+  was throwing the days away. The form now says how many days would go uncharged, and a new
+  loan defaults to a drawdown on its payment day so a blank form is self-consistent.
 - Header navigation looked like a button only on its own page. The links were ghost buttons,
   so they had no visible edge until hovered, and picked up a filled background when their
   route was active — the same fill used for hover. Both now wear the same outline everywhere,

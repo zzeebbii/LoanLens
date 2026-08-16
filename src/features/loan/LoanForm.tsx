@@ -3,7 +3,8 @@ import type { Loan, Tenor } from '@/domain/loan'
 import type { LoanDraft } from '@/features/loan/loanDraft'
 
 import { zodResolver } from '@hookform/resolvers/zod'
-import { InfoIcon } from 'lucide-react'
+import { InfoIcon, TriangleAlertIcon } from 'lucide-react'
+import { useMemo } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 
@@ -11,7 +12,7 @@ import { useRateProviders } from '@/app/providers/RateProviderContext'
 import { DateField } from '@/components/fields/DateField'
 import { MonthField } from '@/components/fields/MonthField'
 import { SwitchField } from '@/components/fields/SwitchField'
-import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -23,7 +24,13 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
-import { DAY_COUNT_CONVENTIONS } from '@/domain/dates'
+import {
+  DAY_COUNT_CONVENTIONS,
+  nominalStubShortfallDays,
+  parseLocalDate,
+  parseYearMonth,
+  paymentDateFor,
+} from '@/domain/dates'
 import { TENORS } from '@/domain/loan'
 import { FormField } from '@/features/loan/FormField'
 import { draftToLoan, loanDraftSchema } from '@/features/loan/loanDraft'
@@ -56,6 +63,32 @@ export function LoanForm({ defaultValues, submitLabel, onSubmit, onCancel }: Loa
 
   const rateKind = form.watch('rateKind')
   const roundRate = form.watch('roundRate')
+
+  /*
+   * Days the nominal convention would not charge for on the first period.
+   *
+   * Watched rather than validated, because none of these values is wrong on its own — the
+   * combination just produces a first instalment that quietly understates the interest, and
+   * the fix is a different day count rather than a different date.
+   */
+  const [dayCount, drawdownDate, firstPaymentPeriod, paymentDay] = form.watch([
+    'dayCount',
+    'drawdownDate',
+    'firstPaymentPeriod',
+    'paymentDay',
+  ])
+
+  const stubShortfallDays = useMemo(() => {
+    if (dayCount !== 'MONTHLY_NOMINAL') return 0
+    // Half-typed dates are the normal state of a form; there is nothing to warn about yet.
+    const drawdown = parseLocalDate(drawdownDate)
+    const period = parseYearMonth(firstPaymentPeriod)
+    const day = Number(paymentDay)
+    if (drawdown === null || period === null || !Number.isInteger(day) || day < 1 || day > 31) {
+      return 0
+    }
+    return nominalStubShortfallDays(drawdown, paymentDateFor(period, day))
+  }, [dayCount, drawdownDate, firstPaymentPeriod, paymentDay])
 
   /** Validation messages are i18n keys; translate at render time. */
   const errorFor = (field: keyof LoanDraft): string | undefined => {
@@ -506,6 +539,16 @@ export function LoanForm({ defaultValues, submitLabel, onSubmit, onCancel }: Loa
             <InfoIcon aria-hidden />
             <AlertDescription>{t('loan:dayCountNotice')}</AlertDescription>
           </Alert>
+
+          {stubShortfallDays > 0 && (
+            <Alert variant="warning">
+              <TriangleAlertIcon aria-hidden />
+              <AlertTitle>{t('loan:stubWarning.title')}</AlertTitle>
+              <AlertDescription>
+                {t('loan:stubWarning.body', { count: stubShortfallDays })}
+              </AlertDescription>
+            </Alert>
+          )}
 
           <Controller
             control={form.control}

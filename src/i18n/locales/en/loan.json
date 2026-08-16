@@ -110,5 +110,10 @@
     "editNamed": "Edit {{name}}",
     "deleteNamed": "Delete {{name}}",
     "openNamed": "Loan: {{name}}"
+  },
+  "stubWarning": {
+    "title": "The first payment will understate its interest",
+    "body": "Your money is drawn down {{count}} day before the first payment falls due, and this day count charges whole months only — so that day is never charged. Most euro-area agreements use Actual/360; check yours.",
+    "body_other": "Your money is drawn down {{count}} days earlier than a whole month before the first payment, and this day count charges whole months only — so those days are never charged for. Most euro-area agreements use Actual/360; check yours."
   }
 }

@@ -6,6 +6,7 @@ import type { AppSettings } from '@/persistence'
 import { z } from 'zod'
 
 import {
+  addMonths,
   DAY_COUNT_CONVENTIONS,
   formatLocalDate,
   localDate,
@@ -17,6 +18,8 @@ import {
 import { bpsToRate, TENORS } from '@/domain/loan'
 import { parseMoney, ZERO } from '@/domain/money'
 import { toDecimalString as moneyToDecimalString } from '@/i18n/format'
+
+const DEFAULT_PAYMENT_DAY = 15
 
 /**
  * The form's own shape, and the mapping to and from a `Loan`.
@@ -215,9 +218,16 @@ export function emptyLoanDraft(settings: AppSettings, today = new Date()): LoanD
     name: '',
     currency: 'EUR',
     principal: '',
-    drawdownDate: formatLocalDate(localDate(year, month, 1)),
-    firstPaymentPeriod: yearMonth(year, month),
-    paymentDay: '15',
+    // Same day of the month as the default payment day, so a blank form is internally
+    // consistent: a drawdown on the 1st against payments on the 15th leaves a fortnight that
+    // a nominal day count never charges for, and the form would open already warning about it.
+    drawdownDate: formatLocalDate(localDate(year, month, DEFAULT_PAYMENT_DAY)),
+    // The month after drawdown, not the same one. A loan whose first instalment falls two
+    // weeks after the money lands is unusual, and under a nominal day count those two weeks
+    // are charged as no interest at all — so the old default opened the form already in a
+    // state worth warning about.
+    firstPaymentPeriod: addMonths(yearMonth(year, month), 1),
+    paymentDay: String(DEFAULT_PAYMENT_DAY),
     termMonths: '300',
     rateKind: 'FLOATING',
     fixedRatePercent: '3.4',

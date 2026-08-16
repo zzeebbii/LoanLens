@@ -8,3 +8,7 @@ coverage/
 !.env.example
 .vite/
 *.tsbuildinfo
+
+# Loan exports. These are the user's own financial records, not project files, and they land
+# in the repository root by default — one `git add -A` away from being published.
+loanlens-backup-*.json

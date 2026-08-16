@@ -271,3 +271,32 @@ export function yearFraction(
     }
   }
 }
+
+/**
+ * Days of the first period that `MONTHLY_NOMINAL` does not charge for.
+ *
+ * The gap between drawdown and the first instalment is the one period in a schedule that is
+ * almost never a whole month — money is drawn when the sale completes, and the first payment
+ * falls on the agreed day of some later month. `MONTHLY_NOMINAL` counts whole months and
+ * discards what is left over. For every other period that is exactly right, because payment
+ * dates share a day of the month and each really is one month. For this one it silently drops
+ * real interest.
+ *
+ * A drawdown on 27 September against a first payment on 20 November spans 54 days and is
+ * charged as one month, so 24 days vanish — on a €125,000 balance at 4%, about €330. That is
+ * not something a reader would catch by eye, which is why it is computed rather than left as
+ * a general warning about day counts.
+ *
+ * Measured by advancing the drawdown date by however many whole months the convention
+ * counted and seeing how far short of the due date that lands, rather than by comparing year
+ * fractions — a nominal month is 30.4 days, so any comparison against elapsed days reports a
+ * day or two of phantom shortfall on every ordinary 31-day period.
+ *
+ * @returns whole days dropped; `0` when the convention charges the period in full.
+ */
+export function nominalStubShortfallDays(drawdownDate: LocalDate, firstDueDate: LocalDate): number {
+  const wholeMonths = Math.round(
+    yearFraction(drawdownDate, firstDueDate, 'MONTHLY_NOMINAL') * MONTHS_PER_YEAR,
+  )
+  return Math.max(0, daysBetween(addMonthsToDate(drawdownDate, wholeMonths), firstDueDate))
+}
