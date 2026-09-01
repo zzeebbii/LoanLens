@@ -1,4 +1,4 @@
-import type { DayCountConvention } from '@/domain/dates'
+import type { DayCountConvention, SettlementConvention } from '@/domain/dates'
 import type { Loan, Tenor } from '@/domain/loan'
 import type { LoanDraft } from '@/features/loan/loanDraft'
 
@@ -30,6 +30,7 @@ import {
   parseLocalDate,
   parseYearMonth,
   paymentDateFor,
+  SETTLEMENT_CONVENTIONS,
 } from '@/domain/dates'
 import { TENORS } from '@/domain/loan'
 import { FormField } from '@/features/loan/FormField'
@@ -567,6 +568,32 @@ export function LoanForm({ defaultValues, submitLabel, onSubmit, onCancel }: Loa
                       {DAY_COUNT_CONVENTIONS.map((convention: DayCountConvention) => (
                         <SelectItem key={convention} value={convention}>
                           {t(`loan:dayCount.${convention}`)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              </FormField>
+            )}
+          />
+
+          <Controller
+            control={form.control}
+            name="settlement"
+            render={({ field }) => (
+              <FormField
+                label={t('loan:field.settlement')}
+                help={t(`loan:settlement.${field.value}_help`)}
+              >
+                {(props) => (
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <SelectTrigger {...props}>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {SETTLEMENT_CONVENTIONS.map((convention: SettlementConvention) => (
+                        <SelectItem key={convention} value={convention}>
+                          {t(`loan:settlement.${convention}`)}
                         </SelectItem>
                       ))}
                     </SelectContent>

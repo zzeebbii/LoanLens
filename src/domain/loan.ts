@@ -1,4 +1,4 @@
-import type { DayCountConvention, LocalDate, YearMonth } from '@/domain/dates'
+import type { DayCountConvention, LocalDate, SettlementConvention, YearMonth } from '@/domain/dates'
 import type { Money, RoundingMode } from '@/domain/money'
 
 /**
@@ -133,6 +133,16 @@ export interface Loan {
   readonly rateBasis: RateBasis
   readonly fees: Fees
   readonly dayCount: DayCountConvention
+  /**
+   * What happens when an instalment falls due on a weekend.
+   *
+   * `FOLLOWING` settles it the next business day, which is what a direct debit actually does.
+   * The capital reduction then lands a day or two late, the balance stays higher over those
+   * days, and the following period is charged for them — a few cents a time, but it
+   * compounds and it is the difference between a schedule that ties out to a statement and
+   * one that drifts.
+   */
+  readonly settlement: SettlementConvention
   /** Rounding applied to monetary results — interest, instalments, allocations. */
   readonly rounding: RoundingMode
 }

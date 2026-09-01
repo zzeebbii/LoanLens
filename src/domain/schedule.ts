@@ -8,7 +8,9 @@ import {
   addMonths,
   MONTHS_PER_YEAR,
   monthsBetween,
+  compareDates,
   paymentDateFor,
+  settlementDateFor,
   yearFraction,
 } from '@/domain/dates'
 import { combineCaps, effectiveRate } from '@/domain/loan'
@@ -273,6 +275,15 @@ export function replay({
   // Interest for the first period accrues from drawdown, which is usually not a
   // payment date and may be a partial period.
   let previousDueDate = loan.drawdownDate
+  /*
+   * Where the previous instalment actually settled, and the balance it settled against.
+   *
+   * Needed together: when a due date falls on a weekend the payment lands a day or two
+   * later, so that stretch accrues on the pre-payment balance and only the remainder of the
+   * period accrues on the reduced one.
+   */
+  let previousSettlementDate = loan.drawdownDate
+  let previousOpeningBalance: Money | null = null
   let instalment: Money | null = null
   let currentRate = Number.NaN
   let currentReference: number | null = null
@@ -385,18 +396,40 @@ export function replay({
     const instalmentThisPeriod = instalment
 
     // ---- interest -------------------------------------------------------------
-    const accrualFactor = yearFraction(previousDueDate, dueDate, loan.dayCount)
-    const interestDue = multiplyByRate(balance, currentRate * accrualFactor, loan.rounding)
+    /*
+     * Accrued in two parts whenever the previous instalment settled after its due date.
+     *
+     * Between the due date and the settlement date the old balance is still outstanding, so
+     * those days are charged on it; the rest of the period is charged on the reduced
+     * balance. Each part is rounded to the cent before they are added, which is what lenders
+     * do and is not the same as rounding the sum — they differ by a cent often enough to be
+     * the last thing standing between a reconstruction and a real statement.
+     *
+     * With no settlement lag both branches agree, so an ordinary loan is unaffected.
+     */
+    const lagFactor =
+      compareDates(previousSettlementDate, previousDueDate) > 0
+        ? yearFraction(previousDueDate, previousSettlementDate, loan.dayCount)
+        : 0
+    const restFactor = yearFraction(previousSettlementDate, dueDate, loan.dayCount)
+    const accrualFactor = lagFactor + restFactor
+
+    const accrue = (rate: number): Money =>
+      lagFactor === 0 || previousOpeningBalance === null
+        ? multiplyByRate(balance, rate * accrualFactor, loan.rounding)
+        : add(
+            multiplyByRate(previousOpeningBalance, rate * lagFactor, loan.rounding),
+            multiplyByRate(balance, rate * restFactor, loan.rounding),
+          )
+
+    const interestDue = accrue(currentRate)
 
     /*
      * The premium portion, computed at the same balance and accrual factor as the interest
      * it is part of — so it is the exact amount the cap added this period, not an estimate.
      * It is a component of `interestDue`, never an addition to it.
      */
-    const capPremium =
-      currentPremiumRate === 0
-        ? ZERO
-        : multiplyByRate(balance, currentPremiumRate * accrualFactor, loan.rounding)
+    const capPremium = currentPremiumRate === 0 ? ZERO : accrue(currentPremiumRate)
 
     // ---- apply the payment ----------------------------------------------------
     holidayWasActive = holiday !== null
@@ -493,6 +526,8 @@ export function replay({
     })
 
     previousDueDate = dueDate
+    previousSettlementDate = settlementDateFor(dueDate, loan.settlement)
+    previousOpeningBalance = openingBalance
     period = addMonths(period, 1)
   }
 

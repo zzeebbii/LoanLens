@@ -1,4 +1,4 @@
-import type { DayCountConvention } from '@/domain/dates'
+import type { DayCountConvention, SettlementConvention } from '@/domain/dates'
 import type { Loan, RateRounding, Tenor } from '@/domain/loan'
 import type { RoundingMode } from '@/domain/money'
 import type { AppSettings } from '@/persistence'
@@ -8,6 +8,8 @@ import { z } from 'zod'
 import {
   addMonths,
   DAY_COUNT_CONVENTIONS,
+  DEFAULT_SETTLEMENT_CONVENTION,
+  SETTLEMENT_CONVENTIONS,
   formatLocalDate,
   localDate,
   parseLocalDate,
@@ -65,6 +67,7 @@ export interface LoanDraft {
   readonly monthlyServicing: string
   readonly perRateReset: string
   readonly dayCount: DayCountConvention
+  readonly settlement: SettlementConvention
   readonly rounding: RoundingMode
 }
 
@@ -144,6 +147,7 @@ export const loanDraftSchema = z
     monthlyServicing: decimalString('loan:validation.principalInvalid'),
     perRateReset: decimalString('loan:validation.principalInvalid'),
     dayCount: z.enum(DAY_COUNT_CONVENTIONS),
+    settlement: z.enum(SETTLEMENT_CONVENTIONS),
     rounding: z.enum(['HALF_UP', 'HALF_EVEN', 'DOWN', 'UP']),
   })
   .refine(
@@ -250,6 +254,7 @@ export function emptyLoanDraft(settings: AppSettings, today = new Date()): LoanD
     monthlyServicing: '0',
     perRateReset: '0',
     dayCount: settings.defaultDayCount,
+    settlement: DEFAULT_SETTLEMENT_CONVENTION,
     rounding: settings.defaultRounding,
   }
 }
@@ -285,6 +290,7 @@ export function loanToDraft(loan: Loan): LoanDraft {
     monthlyServicing: moneyToDecimalString(loan.fees.monthlyServicing),
     perRateReset: moneyToDecimalString(loan.fees.perRateReset),
     dayCount: loan.dayCount,
+    settlement: loan.settlement,
     rounding: loan.rounding,
   }
 }
@@ -349,6 +355,7 @@ export function draftToLoan(draft: ValidatedLoanDraft): Loan {
       perRateReset: parseMoney(draft.perRateReset) as NonNullable<ReturnType<typeof parseMoney>>,
     },
     dayCount: draft.dayCount,
+    settlement: draft.settlement,
     rounding: draft.rounding,
   }
 }

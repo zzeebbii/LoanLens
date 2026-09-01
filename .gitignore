@@ -12,3 +12,7 @@ coverage/
 # Loan exports. These are the user's own financial records, not project files, and they land
 # in the repository root by default — one `git add -A` away from being published.
 loanlens-backup-*.json
+
+# Bank statement exports. Personal financial records that land in the repo root while
+# reconciling the engine against them — never project files.
+transactions*.csv

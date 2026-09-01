@@ -7,6 +7,7 @@ import { z } from 'zod'
 
 import {
   DAY_COUNT_CONVENTIONS,
+  SETTLEMENT_CONVENTIONS,
   formatLocalDate,
   parseLocalDate,
   parseYearMonth,
@@ -86,6 +87,11 @@ export const storedLoanSchema = z.object({
   rateBasis: rateBasisSchema,
   fees: z.object({ monthlyServicing: moneySchema, perRateReset: moneySchema }),
   dayCount: z.enum(DAY_COUNT_CONVENTIONS),
+  // Added after the first release: loans stored before it settle on the calendar date.
+  settlement: z
+    .enum(SETTLEMENT_CONVENTIONS)
+    .nullish()
+    .transform((v) => v ?? 'NONE'),
   rounding: roundingModeSchema,
 })
 
@@ -178,6 +184,7 @@ function asLocalDate(value: string): LocalDate {
 
 export function toStoredLoan(loan: Loan): StoredLoan {
   return {
+    settlement: loan.settlement,
     id: loan.id,
     name: loan.name,
     currency: loan.currency,
@@ -199,6 +206,7 @@ export function toStoredLoan(loan: Loan): StoredLoan {
 
 export function fromStoredLoan(stored: StoredLoan): Loan {
   return {
+    settlement: stored.settlement,
     id: stored.id,
     name: stored.name,
     currency: stored.currency,

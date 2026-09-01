@@ -128,6 +128,18 @@ export function daysBetween(from: LocalDate, to: LocalDate): number {
   return toEpochDay(to) - toEpochDay(from)
 }
 
+/**
+ * Shifts by whole days, rolling across month and year boundaries.
+ *
+ * Built on a UTC `Date` rather than the epoch-day arithmetic above because that pair has no
+ * inverse here, and UTC keeps the result independent of the machine's timezone — a local
+ * `Date` would shift the day either side of midnight depending on where the browser is.
+ */
+export function addDaysToDate(date: LocalDate, days: number): LocalDate {
+  const shifted = new Date(Date.UTC(date.year, date.month - 1, date.day + days))
+  return localDate(shifted.getUTCFullYear(), shifted.getUTCMonth() + 1, shifted.getUTCDate())
+}
+
 export function compareDates(a: LocalDate, b: LocalDate): number {
   return toEpochDay(a) - toEpochDay(b)
 }
@@ -299,4 +311,40 @@ export function nominalStubShortfallDays(drawdownDate: LocalDate, firstDueDate: 
     yearFraction(drawdownDate, firstDueDate, 'MONTHLY_NOMINAL') * MONTHS_PER_YEAR,
   )
   return Math.max(0, daysBetween(addMonthsToDate(drawdownDate, wholeMonths), firstDueDate))
+}
+
+/**
+ * How a payment date that is not a business day is moved.
+ *
+ * `NONE` charges on the calendar date regardless, which is what a textbook schedule does.
+ * `FOLLOWING` moves to the next business day, which is what a bank does — a direct debit
+ * cannot settle on a Sunday. The difference is not cosmetic: the capital reduction lands a
+ * day or two later, so the balance stays higher over those days and the *next* period is
+ * charged more interest.
+ *
+ * Only weekends are treated as non-business days. Public holidays vary by country and by
+ * bank, and adding a calendar that is wrong for the user's lender would introduce errors of
+ * exactly the kind this is meant to remove — where a real statement disagrees, a manual
+ * override is the honest tool.
+ */
+export const SETTLEMENT_CONVENTIONS = ['NONE', 'FOLLOWING'] as const
+
+export type SettlementConvention = (typeof SETTLEMENT_CONVENTIONS)[number]
+
+export const DEFAULT_SETTLEMENT_CONVENTION: SettlementConvention = 'NONE'
+
+/** Saturday or Sunday. */
+export function isWeekend(date: LocalDate): boolean {
+  const day = new Date(Date.UTC(date.year, date.month - 1, date.day)).getUTCDay()
+  return day === 0 || day === 6
+}
+
+/** The date a payment due on `dueDate` actually settles under `convention`. */
+export function settlementDateFor(dueDate: LocalDate, convention: SettlementConvention): LocalDate {
+  if (convention === 'NONE') return dueDate
+
+  let settled = dueDate
+  // At most two steps: a weekend is never longer than that.
+  while (isWeekend(settled)) settled = addDaysToDate(settled, 1)
+  return settled
 }
