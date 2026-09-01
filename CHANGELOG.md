@@ -132,6 +132,12 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   `cursor: pointer` browsers apply to buttons, so nothing in the app looked clickable on
   hover — most visibly the loan page's tabs, which have no other affordance saying they are
   interactive. Fixed once at the base layer rather than per component.
+- Weekend settlement (`settlement: 'FOLLOWING'`), for loans whose instalment is collected on
+  the next business day when the due date falls at a weekend. The capital reduction lands a
+  day or two late, so the old balance stays outstanding over those days and the following
+  period is charged for them. Each part of a split period is rounded to the cent before the
+  two are added, which is what lenders do and differs from rounding the sum often enough to
+  matter. Existing loans default to `NONE` and are unaffected.
 - A totals row on the payment schedule, summing interest, capital and the amount paid across
   the rows on screen — so a filtered view totals what it is showing rather than the whole loan.
   Closing balances are deliberately not summed: a balance is a position, not a flow, and

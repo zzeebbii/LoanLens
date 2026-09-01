@@ -1,4 +1,4 @@
-import type { DayCountConvention, YearMonth } from '@/domain/dates'
+import type { DayCountConvention, SettlementConvention, YearMonth } from '@/domain/dates'
 import type { Loan, RateCap, RateRounding } from '@/domain/loan'
 import type { Money, RoundingMode } from '@/domain/money'
 import type { ReferenceRateAt } from '@/domain/schedule'
@@ -26,6 +26,7 @@ export interface FixedRateLoanOverrides {
   readonly annualRate?: number
   readonly paymentDay?: number
   readonly dayCount?: DayCountConvention
+  readonly settlement?: SettlementConvention
   readonly rounding?: RoundingMode
   readonly monthlyServicing?: Money
   readonly perRateReset?: Money
@@ -50,6 +51,7 @@ export function fixedRateLoan(overrides: FixedRateLoanOverrides = {}): Loan {
       perRateReset: overrides.perRateReset ?? ZERO,
     },
     dayCount: overrides.dayCount ?? 'MONTHLY_NOMINAL',
+    settlement: overrides.settlement ?? 'NONE',
     rounding: overrides.rounding ?? 'HALF_UP',
   }
 }
